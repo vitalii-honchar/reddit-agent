@@ -78,20 +78,20 @@ class TestRedditSearchIntegration:
     
     def test_search_digital_marketing_opportunities(self, reddit_search_tool):
         """Test searching for digital marketing business opportunities in r/startups."""
-        result = reddit_search_tool(
-            subreddit="startups",
-            query="digital marketing SEO content",
-            sort="top",
-            time_filter="month",
-            min_score=5,
-            min_comments=3,
-            filter_prompt="""Include posts that discuss:
+        result = reddit_search_tool.invoke({
+            "subreddit": "startups",
+            "query": "digital marketing SEO content",
+            "sort": "top",
+            "time_filter": "month",
+            "min_score": 5,
+            "min_comments": 3,
+            "filter_prompt": """Include posts that discuss:
             - Digital marketing business opportunities
             - SEO consulting or content creation services
             - Online marketing strategies for startups
             - Content marketing and copywriting services
             Exclude posts about unrelated topics or spam."""
-        )
+        })
         
         # Validate the result structure
         assert result.subreddit == "startups"
@@ -107,20 +107,20 @@ class TestRedditSearchIntegration:
             
     def test_search_ai_startup_ideas(self, reddit_search_tool):
         """Test searching for AI-related startup opportunities."""
-        result = reddit_search_tool(
-            subreddit="startups",
-            query="AI artificial intelligence business",
-            sort="hot",
-            time_filter="week",
-            min_score=3,
-            min_comments=2,
-            filter_prompt="""Include posts that discuss:
+        result = reddit_search_tool.invoke({
+            "subreddit": "startups",
+            "query": "AI artificial intelligence business",
+            "sort": "hot",
+            "time_filter": "week",
+            "min_score": 3,
+            "min_comments": 2,
+            "filter_prompt": """Include posts that discuss:
             - AI-powered business ideas or startups
             - Artificial intelligence applications in business
             - Machine learning opportunities
             - AI consulting or development services
             Exclude generic AI news or theoretical discussions."""
-        )
+        })
         
         # Validate the result structure
         assert result.subreddit == "startups"
@@ -134,20 +134,20 @@ class TestRedditSearchIntegration:
             
     def test_search_online_education_opportunities(self, reddit_search_tool):
         """Test searching for online education and tutoring business ideas."""
-        result = reddit_search_tool(
-            subreddit="startups",
-            query="online education tutoring course",
-            sort="relevance",
-            time_filter="month",
-            min_score=2,
-            min_comments=1,
-            filter_prompt="""Include posts that discuss:
+        result = reddit_search_tool.invoke({
+            "subreddit": "startups",
+            "query": "online education tutoring course",
+            "sort": "relevance",
+            "time_filter": "month",
+            "min_score": 2,
+            "min_comments": 1,
+            "filter_prompt": """Include posts that discuss:
             - Online education platform ideas
             - Tutoring and teaching service opportunities
             - Course creation and educational content
             - EdTech startup concepts
             Exclude posts about personal learning experiences."""
-        )
+        })
         
         # Validate the result structure
         assert result.subreddit == "startups"
@@ -155,20 +155,20 @@ class TestRedditSearchIntegration:
         
     def test_search_saas_business_ideas(self, reddit_search_tool):
         """Test searching for SaaS business opportunities."""
-        result = reddit_search_tool(
-            subreddit="startups",
-            query="SaaS software service platform",
-            sort="top",
-            time_filter="month",
-            min_score=5,
-            min_comments=3,
-            filter_prompt="""Include posts that discuss:
+        result = reddit_search_tool.invoke({
+            "subreddit": "startups",
+            "query": "SaaS software service platform",
+            "sort": "top",
+            "time_filter": "month",
+            "min_score": 5,
+            "min_comments": 3,
+            "filter_prompt": """Include posts that discuss:
             - SaaS business ideas and opportunities
             - Software-as-a-Service platforms
             - B2B software solutions
             - Subscription-based business models
             Exclude posts about using existing SaaS tools."""
-        )
+        })
         
         # Validate the result structure
         assert result.subreddit == "startups"
@@ -180,15 +180,15 @@ class TestRedditSearchIntegration:
             
     def test_search_returns_valid_data_structure(self, reddit_search_tool):
         """Test that the search tool returns properly structured data."""
-        result = reddit_search_tool(
-            subreddit="entrepreneur",  # Using a different subreddit for variety
-            query="business opportunity",
-            sort="new",
-            time_filter="day",
-            min_score=1,
-            min_comments=1,
-            filter_prompt="Include any business-related posts."
-        )
+        result = reddit_search_tool.invoke({
+            "subreddit": "entrepreneur",  # Using a different subreddit for variety
+            "query": "business opportunity",
+            "sort": "new",
+            "time_filter": "day",
+            "min_score": 1,
+            "min_comments": 1,
+            "filter_prompt": "Include any business-related posts."
+        })
         
         # Validate SearchResult structure
         assert hasattr(result, 'subreddit')
