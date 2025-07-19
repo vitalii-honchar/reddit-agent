@@ -1,6 +1,7 @@
 """Integration test for Reddit search tool using GPT-4.1"""
 import os
 import pytest
+from pathlib import Path
 from dotenv import load_dotenv
 from praw import Reddit
 from langchain_openai import ChatOpenAI
@@ -10,7 +11,16 @@ from reddit_agent.tool.reddit.tools import RedditToolsService, create_reddit_sea
 @pytest.fixture
 def reddit_client():
     """Create Reddit client from environment variables."""
-    load_dotenv("../.env")
+    # Load .env from project root using pathlib for better cross-platform support
+    project_root = Path(__file__).parent.parent
+    env_path = project_root / ".env"
+    
+    # Try to load .env file if it exists
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        # Also try to load from current working directory
+        load_dotenv()
     
     client_id = os.getenv("REDDIT_CLIENT_ID")
     client_secret = os.getenv("REDDIT_CLIENT_SECRET")
@@ -29,6 +39,17 @@ def reddit_client():
 @pytest.fixture
 def openai_llm():
     """Create OpenAI GPT-4.1 client."""
+    # Load .env from project root using pathlib for better cross-platform support  
+    project_root = Path(__file__).parent.parent
+    env_path = project_root / ".env"
+    
+    # Try to load .env file if it exists
+    if env_path.exists():
+        load_dotenv(env_path)
+    else:
+        # Also try to load from current working directory
+        load_dotenv()
+    
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         pytest.skip("OpenAI API key not configured")
