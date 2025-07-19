@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import List, Optional, Literal
-from pydantic import BaseModel, Field
+from typing import Literal
+from pydantic import BaseModel, Field, ConfigDict
 
 SearchSort = Literal["relevance", "hot", "top", "new"]
 SearchTimeFilter = Literal["all", "day", "hour", "month", "week", "year"]
@@ -26,10 +26,11 @@ class RedditSubmission(BaseModel):
     created_utc: datetime = Field(description="Submission created time")
     upvote_ratio: float = Field(description="Submission upvote ratio")
 
-    class Config:
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             datetime: lambda v: v.isoformat()
         }
+    )
 
 
 class SearchResult(BaseModel):

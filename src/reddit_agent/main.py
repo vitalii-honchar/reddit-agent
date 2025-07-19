@@ -112,7 +112,7 @@ def main():
     }
     
     print("🚀 Starting weather agent workflow...\n")
-    final_state = graph.invoke(initial_state)
+    graph.invoke(initial_state)
     
     print("\n✅ Workflow completed!")
 

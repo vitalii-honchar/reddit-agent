@@ -1,4 +1,3 @@
-from logging import exception
 
 from praw import Reddit
 from praw.models import Submission, Comment
@@ -6,6 +5,7 @@ from .models import SearchQuery, RedditSubmission, SearchResult, SubmissionFilte
 from pydantic import BaseModel, Field
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage
+from langchain_core.tools import tool
 from datetime import datetime
 import logging
 
@@ -57,7 +57,7 @@ class RedditToolsService:
 
         return SearchResult(
             subreddit=query.subreddit,
-            submissions=submissions,
+            submissions=res_submissions,
         )
 
     def __submission_matches(self, submission_filter: SubmissionFilter, submission: Submission) -> RedditSubmission | None:
@@ -123,3 +123,48 @@ class RedditToolsService:
             comments=[RedditSubmissionLlmComment(body=c.body, created_utc=c.created_utc, score = c.score) for c in comments],
             upvote_ratio=submission.upvote_ratio,
         )
+
+
+def create_reddit_search_tool(reddit_service: RedditToolsService):
+    """Create a LangGraph-compatible tool for Reddit search."""
+    
+    @tool("reddit_search", return_direct=True)
+    def reddit_search(
+        subreddit: str,
+        query: str,
+        sort: str = "relevance",
+        time_filter: str = "all",
+        min_score: int = 1,
+        min_comments: int = 1,
+        filter_prompt: str = "Include posts that discuss business opportunities, startup ideas, or entrepreneurial ventures."
+    ) -> SearchResult:
+        """
+        Search Reddit for posts matching specific criteria.
+        
+        Args:
+            subreddit: Name of the subreddit to search (e.g., 'startups')
+            query: Search query text
+            sort: Sort order - 'relevance', 'hot', 'top', 'new'
+            time_filter: Time filter - 'all', 'day', 'hour', 'month', 'week', 'year'
+            min_score: Minimum post score to include
+            min_comments: Minimum number of comments to include
+            filter_prompt: LLM filter rules for post relevance
+        
+        Returns:
+            SearchResult containing matching Reddit submissions
+        """
+        search_query = SearchQuery(
+            subreddit=subreddit,
+            query=query,
+            sort=sort,
+            time_filter=time_filter,
+            filter=SubmissionFilter(
+                score=min_score,
+                num_comments=min_comments,
+                filter_prompt=filter_prompt
+            )
+        )
+        
+        return reddit_service.search(search_query)
+    
+    return reddit_search
