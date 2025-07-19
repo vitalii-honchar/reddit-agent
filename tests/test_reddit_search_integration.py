@@ -10,7 +10,7 @@ from reddit_agent.tool.reddit.tools import RedditToolsService, create_reddit_sea
 @pytest.fixture
 def reddit_client():
     """Create Reddit client from environment variables."""
-    load_dotenv()
+    load_dotenv("../.env")
     
     client_id = os.getenv("REDDIT_CLIENT_ID")
     client_secret = os.getenv("REDDIT_CLIENT_SECRET")
