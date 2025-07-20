@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 from praw import Reddit
 from langchain_openai import ChatOpenAI
 import os
+import logging
 from config import Config
+
 
 @pytest.fixture
 def reddit_client():

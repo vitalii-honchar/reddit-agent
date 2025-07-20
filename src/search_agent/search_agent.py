@@ -5,8 +5,11 @@ from langchain_core.messages import HumanMessage
 from langgraph.prebuilt import create_react_agent
 
 from config import Config
-from .models import CreateSearchAgentCommand, SearchResult
-from .tool import create_reddit_tools
+from search_agent.models import CreateSearchAgentCommand, SearchResult
+from search_agent.tool import create_reddit_tools
+import logging
+
+logger = logging.getLogger(__name__)
 
 SEARCH_AGENT_PROMPT = """You are a search agent. Your mission: research provided topic by a user by using all possible tools.
 
@@ -60,7 +63,13 @@ def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
     )
 
     messages = [HumanMessage(cmd.search_query)]
-    return agent.invoke({"messages": messages})
+    input = {"messages": messages}
+
+    for event in agent.stream(input, stream_mode='values'):
+        logger.info("Event received: %s", event)
+        res = event
+
+    return res['value']
 
 def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
     tools = []

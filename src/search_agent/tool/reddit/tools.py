@@ -69,6 +69,7 @@ class RedditToolsService:
         self.llm = llm
 
     def search(self, query: SearchQuery) -> SearchResult:
+        logging.info(f"Searching reddit: query = {query}")
         subreddit = self.reddit.subreddit(query.subreddit)
         submissions = subreddit.search(query=query.query, sort=query.sort, time_filter=query.time_filter)
 
@@ -80,6 +81,8 @@ class RedditToolsService:
             summarized_submission = self.__submission_matches(query.filter, submission)
             if summarized_submission:
                 res_submissions.append(summarized_submission)
+
+        logging.info(f"Found Reddit submissions: submissions = {len(res_submissions)}")
 
         return SearchResult(
             subreddit=query.subreddit,

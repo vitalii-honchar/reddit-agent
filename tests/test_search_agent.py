@@ -1,7 +1,7 @@
 """Integration test for search agent finding marketing opportunities for indie projects."""
-from search_agent.search_agent import execute_search
-from search_agent.models import CreateSearchAgentCommand, SearchResult
 from config import Config
+from search_agent.models import CreateSearchAgentCommand, SearchResult
+from search_agent.search_agent import execute_search
 
 
 class TestSearchAgentIntegration:
