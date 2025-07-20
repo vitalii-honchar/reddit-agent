@@ -9,15 +9,39 @@ from langchain_core.tools import tool
 from datetime import datetime
 import logging
 
-FILTER_PROMPT = """You are search assistant and your task is to classify Reddit submissions 
-to include or exclude from the end search result. 
-Analyze Reddit submission with comments and make a decision: include or exclude from the search result based on the filter rules.
-If submission satisfies filter rules include summary of the submission in the result, if not return None.
+FILTER_PROMPT = """You are a Reddit content classifier. Analyze submissions and return structured data only if they pass ALL filter rules.
+
+TASK:
+- If submission fails ANY filter rule: return null
+- If submission passes ALL filter rules: return complete RedditSubmission object
+
+SUMMARY REQUIREMENTS:
+- summary: max 500 chars, FACTS ONLY - no filler words or watery language
+- comments_summary: max 500 chars, TOP INSIGHTS ONLY from discussion
+- Stay under 500 chars to ensure complete sentences (schema allows 512)
+- Lead with numbers, tactics, tools, specific outcomes
+- Cut every unnecessary word - maximum value per character
+- Extract: specific tactics, metrics, tools, proven strategies, failure analysis
+- Include: what worked/failed, conversion rates, pricing, growth numbers, methods
+- Focus: information useful for future analyzing
+- Cut: fluff, obvious statements, generic advice, personal opinions
+
+ARGET CONTENT FOR SUMMARIES:
+- Specific numbers: conversion rates, pricing, ROI, growth metrics
+- Tactical details: tools used, processes, implementation methods
+- Proven strategies: what actually drives results with evidence
+- Failure analysis: what doesn't work and why
+- Measurable outcomes and replicable tactics
 
 <FILTER_RULES>
 {filter_rules}
-<FILTER_RULES> 
-"""
+</FILTER_RULES>
+
+ANALYSIS PROCESS:
+1. Check filter rules - fail any = return null
+2. Extract competitive intelligence: What gives advantage?
+3. Focus on measurable outcomes and replicable methods
+4. Pack maximum strategic value into minimum characters"""
 
 class RedditSubmissionLlmComment(BaseModel):
     body: str = Field(description="The body of the comment, as Markdown.")
@@ -44,13 +68,14 @@ class RedditToolsService:
         self.llm = llm
 
     def search(self, query: SearchQuery) -> SearchResult:
-
         subreddit = self.reddit.subreddit(query.subreddit)
         submissions = subreddit.search(query=query.query, sort=query.sort, time_filter=query.time_filter)
 
         res_submissions = []
 
         for submission in submissions:
+            if len(res_submissions) >= query.limit:
+                break
             summarized_submission = self.__submission_matches(query.filter, submission)
             if summarized_submission:
                 res_submissions.append(summarized_submission)
@@ -64,12 +89,12 @@ class RedditToolsService:
         if submission.selftext is None or len(submission.selftext.strip()) == 0:
             return None
 
-        if submission.score < submission_filter.score:
+        if submission.score < submission_filter.min_score:
             return None
 
         comments = self.__download_comments(submission)
 
-        if len(comments) < submission_filter.num_comments:
+        if len(comments) < submission_filter.min_comments:
             return None
 
         return self.__analyze_submission_with_llm(submission_filter, submission, comments)
@@ -128,43 +153,18 @@ class RedditToolsService:
 def create_reddit_search_tool(reddit_service: RedditToolsService):
     """Create a LangGraph-compatible tool for Reddit search."""
     
-    @tool("reddit_search", return_direct=True)
+    @tool("reddit_search")
     def reddit_search(
-        subreddit: str,
-        query: str,
-        sort: str = "relevance",
-        time_filter: str = "all",
-        min_score: int = 1,
-        min_comments: int = 1,
-        filter_prompt: str = "Include posts that discuss business opportunities, startup ideas, or entrepreneurial ventures."
-    ) -> SearchResult:
+        query: SearchQuery
+    ) -> str:
         """
         Search Reddit for posts matching specific criteria.
-        
+
         Args:
-            subreddit: Name of the subreddit to search (e.g., 'startups')
-            query: Search query text
-            sort: Sort order - 'relevance', 'hot', 'top', 'new'
-            time_filter: Time filter - 'all', 'day', 'hour', 'month', 'week', 'year'
-            min_score: Minimum post score to include
-            min_comments: Minimum number of comments to include
-            filter_prompt: LLM filter rules for post relevance
-        
+            query: Search query.
         Returns:
-            SearchResult containing matching Reddit submissions
+            SearchResult as JSON containing matching Reddit submissions
         """
-        search_query = SearchQuery(
-            subreddit=subreddit,
-            query=query,
-            sort=sort,
-            time_filter=time_filter,
-            filter=SubmissionFilter(
-                score=min_score,
-                num_comments=min_comments,
-                filter_prompt=filter_prompt
-            )
-        )
-        
-        return reddit_service.search(search_query)
+        return reddit_service.search(query).model_dump_json()
     
     return reddit_search
