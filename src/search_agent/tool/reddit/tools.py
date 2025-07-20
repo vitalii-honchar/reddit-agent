@@ -7,6 +7,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 from datetime import datetime
+from typing import Callable
 import logging
 
 FILTER_PROMPT = """You are a Reddit content classifier. Analyze submissions and return structured data only if they pass ALL filter rules.
@@ -150,7 +151,7 @@ class RedditToolsService:
         )
 
 
-def create_reddit_search_tool(reddit_service: RedditToolsService):
+def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
     """Create a LangGraph-compatible tool for Reddit search."""
     
     @tool("reddit_search")
@@ -168,3 +169,9 @@ def create_reddit_search_tool(reddit_service: RedditToolsService):
         return reddit_service.search(query).model_dump_json()
     
     return reddit_search
+
+def create_reddit_tools(reddit: Reddit, llm: BaseChatModel) -> list[Callable]:
+    svc = RedditToolsService(reddit, llm)
+    return [
+        create_reddit_search_tool(svc),
+    ]
