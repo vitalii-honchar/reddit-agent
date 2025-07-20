@@ -2,71 +2,15 @@
 from praw import Reddit
 from praw.models import Submission, Comment
 from .models import SearchQuery, RedditSubmission, SearchResult, SubmissionFilter
-from pydantic import BaseModel, Field
-from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 from datetime import datetime
 from typing import Callable
 import logging
 
-FILTER_PROMPT = """You are a Reddit content classifier. Analyze submissions and return structured data only if they pass ALL filter rules.
-
-TASK:
-- If submission fails ANY filter rule: return null
-- If submission passes ALL filter rules: return complete RedditSubmission object
-
-SUMMARY REQUIREMENTS:
-- summary: max 500 chars, FACTS ONLY - no filler words or watery language
-- comments_summary: max 500 chars, TOP INSIGHTS ONLY from discussion
-- Stay under 500 chars to ensure complete sentences (schema allows 512)
-- Lead with numbers, tactics, tools, specific outcomes
-- Cut every unnecessary word - maximum value per character
-- Extract: specific tactics, metrics, tools, proven strategies, failure analysis
-- Include: what worked/failed, conversion rates, pricing, growth numbers, methods
-- Focus: information useful for future analyzing
-- Cut: fluff, obvious statements, generic advice, personal opinions
-
-ARGET CONTENT FOR SUMMARIES:
-- Specific numbers: conversion rates, pricing, ROI, growth metrics
-- Tactical details: tools used, processes, implementation methods
-- Proven strategies: what actually drives results with evidence
-- Failure analysis: what doesn't work and why
-- Measurable outcomes and replicable tactics
-
-<FILTER_RULES>
-{filter_rules}
-</FILTER_RULES>
-
-ANALYSIS PROCESS:
-1. Check filter rules - fail any = return null
-2. Extract competitive intelligence: What gives advantage?
-3. Focus on measurable outcomes and replicable methods
-4. Pack maximum strategic value into minimum characters"""
-
-class RedditSubmissionLlmComment(BaseModel):
-    body: str = Field(description="The body of the comment, as Markdown.")
-    created_utc: datetime = Field(description="The date the comment was created.")
-    score: int = Field(description="Comment score")
-
-class RedditSubmissionLlmFilterRequest(BaseModel):
-    id: str = Field(description="Submission id")
-    score: int = Field(description="Submission score")
-    upvote_ratio: float = Field(description="Submission upvote ratio")
-    created_utc: datetime = Field(description="Submission created time")
-    title: str = Field(description="Submission title")
-    selftext: str = Field(description="Submission selftext")
-    comments: list[RedditSubmissionLlmComment] = Field(description="Submission comments")
-
-
-class FilterResult(BaseModel):
-    submission: RedditSubmission | None = Field(default=None, description="Reddit submission which matches filter rules")
-
 class RedditToolsService:
 
-    def __init__(self, reddit: Reddit, llm: BaseChatModel):
+    def __init__(self, reddit: Reddit):
         self.reddit = reddit
-        self.llm = llm
 
     def search(self, query: SearchQuery) -> SearchResult:
         logging.info(f"Searching reddit: query = {query}")
@@ -90,40 +34,126 @@ class RedditToolsService:
         )
 
     def __submission_matches(self, submission_filter: SubmissionFilter, submission: Submission) -> RedditSubmission | None:
+        # Basic content checks
         if submission.selftext is None or len(submission.selftext.strip()) == 0:
             return None
-
-        if submission.score < submission_filter.min_score:
+            
+        if len(submission.selftext.strip()) < submission_filter.min_content_length:
+            return None
+            
+        if len(submission.title.strip()) < submission_filter.min_title_length:
             return None
 
-        comments = self.__download_comments(submission)
+        # Score and engagement checks
+        if submission.score < submission_filter.min_score:
+            return None
+            
+        if submission.upvote_ratio < submission_filter.min_upvote_ratio:
+            return None
 
+        # Age check
+        submission_age_days = (datetime.now() - datetime.fromtimestamp(submission.created_utc)).days
+        if submission_age_days > submission_filter.max_days_old:
+            return None
+
+        # Flair check
+        if submission.link_flair_text and submission_filter.excluded_flairs:
+            if any(flair.lower() in submission.link_flair_text.lower() for flair in submission_filter.excluded_flairs):
+                return None
+
+        # Keyword checks
+        content_text = (submission.title + " " + submission.selftext).lower()
+        
+        # Required keywords check
+        if submission_filter.required_keywords:
+            if not all(keyword.lower() in content_text for keyword in submission_filter.required_keywords):
+                return None
+                
+        # Excluded keywords check
+        if submission_filter.excluded_keywords:
+            if any(keyword.lower() in content_text for keyword in submission_filter.excluded_keywords):
+                return None
+
+        # Comments check
+        comments = self.__download_comments(submission)
         if len(comments) < submission_filter.min_comments:
             return None
 
-        return self.__analyze_submission_with_llm(submission_filter, submission, comments)
+        # Valuable comments ratio check
+        valuable_comments = [c for c in comments if c.score >= submission_filter.min_comment_score_threshold]
+        if len(comments) > 0:
+            valuable_ratio = len(valuable_comments) / len(comments)
+            if valuable_ratio < submission_filter.min_valuable_comments_ratio:
+                return None
 
-    def __analyze_submission_with_llm(
-        self,
-        submission_filter: SubmissionFilter,
-        submission: Submission,
-        comments: list[Comment]
-    ) -> RedditSubmission | None:
-        try:
-            llm_with_structured_output = self.llm.with_structured_output(FilterResult)
-            request = self.__create_reddit_submission_llm_filter_request(submission, comments)
+        # Use heuristic filtering instead of LLM
+        return self.__create_submission_with_heuristic_summary(submission, comments)
 
-            prompt_messages = [
-                SystemMessage(content=FILTER_PROMPT.format(filter_rules=submission_filter.filter_prompt)),
-                {"role": "user", "content": request.model_dump_json()}
-            ]
-
-            res = llm_with_structured_output.invoke(prompt_messages)
-            if isinstance(res, FilterResult):
-                return res.submission
-        except Exception:
-            logging.exception("Failed to analyze submission")
-        return None
+    def __create_submission_with_heuristic_summary(self, submission: Submission, comments: list[Comment]) -> RedditSubmission:
+        """Create RedditSubmission with heuristic-based summaries instead of LLM."""
+        
+        # Create submission summary from title and content
+        submission_summary = self.__create_heuristic_submission_summary(submission)
+        
+        # Create comments summary from top comments
+        comments_summary = self.__create_heuristic_comments_summary(comments)
+        
+        return RedditSubmission(
+            id=submission.id,
+            summary=submission_summary,
+            comments_summary=comments_summary,
+            score=submission.score,
+            num_comments=submission.num_comments,
+            created_utc=datetime.fromtimestamp(submission.created_utc),
+            upvote_ratio=submission.upvote_ratio
+        )
+    
+    def __create_heuristic_submission_summary(self, submission: Submission) -> str:
+        """Create a heuristic summary of the submission."""
+        # Start with title
+        summary_parts = [f"Title: {submission.title}"]
+        
+        # Add key metrics
+        summary_parts.append(f"Score: {submission.score}, Upvote ratio: {submission.upvote_ratio:.2f}, Comments: {submission.num_comments}")
+        
+        # Add content preview (first 300 chars)
+        content = submission.selftext.strip()
+        if content:
+            preview = content[:300] + "..." if len(content) > 300 else content
+            summary_parts.append(f"Content: {preview}")
+        
+        # Join and ensure it's at least 500 chars
+        summary = " | ".join(summary_parts)
+        
+        # Pad to minimum length if needed
+        if len(summary) < 500:
+            summary += " " * (500 - len(summary))
+            
+        return summary[:512]  # Ensure max length
+    
+    def __create_heuristic_comments_summary(self, comments: list[Comment]) -> str:
+        """Create a heuristic summary of top comments."""
+        if not comments:
+            return "No comments available" + " " * (500 - len("No comments available"))
+        
+        # Sort comments by score (highest first)
+        sorted_comments = sorted(comments, key=lambda c: c.score, reverse=True)
+        
+        # Take top 3 comments
+        top_comments = sorted_comments[:3]
+        
+        summary_parts = []
+        for i, comment in enumerate(top_comments, 1):
+            comment_text = comment.body[:150] + "..." if len(comment.body) > 150 else comment.body
+            summary_parts.append(f"Comment {i} (score {comment.score}): {comment_text}")
+        
+        summary = " | ".join(summary_parts)
+        
+        # Pad to minimum length if needed
+        if len(summary) < 500:
+            summary += " " * (500 - len(summary))
+            
+        return summary[:512]  # Ensure max length
 
     @staticmethod
     def __download_comments(submission: Submission) -> list[Comment]:
@@ -140,18 +170,6 @@ class RedditToolsService:
         except Exception:
             logging.exception(f"Failed to download comments for submission {submission.id}")
             return []
-
-    @staticmethod
-    def __create_reddit_submission_llm_filter_request(submission: Submission, comments: list[Comment]) -> RedditSubmissionLlmFilterRequest:
-        return RedditSubmissionLlmFilterRequest(
-            id=submission.id,
-            score=submission.score,
-            created_utc=submission.created_utc,
-            title=submission.title,
-            selftext=submission.selftext,
-            comments=[RedditSubmissionLlmComment(body=c.body, created_utc=c.created_utc, score = c.score) for c in comments],
-            upvote_ratio=submission.upvote_ratio,
-        )
 
 
 def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
@@ -173,8 +191,8 @@ def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
     
     return reddit_search
 
-def create_reddit_tools(reddit: Reddit, llm: BaseChatModel) -> list[Callable]:
-    svc = RedditToolsService(reddit, llm)
+def create_reddit_tools(reddit: Reddit) -> list[Callable]:
+    svc = RedditToolsService(reddit)
     return [
         create_reddit_search_tool(svc),
     ]

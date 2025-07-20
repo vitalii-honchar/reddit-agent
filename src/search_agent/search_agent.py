@@ -66,10 +66,14 @@ def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
     input = {"messages": messages}
 
     for event in agent.stream(input, stream_mode='values'):
-        logger.info("Event received: %s", event)
+        logger.info("Event received: %s", event["messages"][-1])
         res = event
 
-    return res['value']
+    response = res["structured_response"]
+
+    return SearchResult(
+        reddit_search_results=list(filter(lambda it: len(it.submissions) > 0, response.reddit_search_results)),
+    )
 
 def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
     tools = []
@@ -81,6 +85,6 @@ def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
                 client_secret=cfg.reddit_config.client_secret,
                 user_agent=cfg.reddit_config.user_agent,
             )
-            tools.extend(create_reddit_tools(reddit, cfg.llm))
+            tools.extend(create_reddit_tools(reddit))
 
     return tools
