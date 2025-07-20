@@ -23,10 +23,10 @@ This is a Python-based Reddit agent project built with uv as the package manager
 uv sync
 
 # Run the application
-uv run python -m reddit_agent.main
+uv run python -m search_agent.main
 
 # Alternative run method
-uv run python src/reddit_agent/main.py
+uv run python src/search_agent/main.py
 ```
 
 ## Reddit API Setup

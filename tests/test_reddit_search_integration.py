@@ -5,8 +5,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from praw import Reddit
 from langchain_openai import ChatOpenAI
-from reddit_agent.tool.reddit.tools import RedditToolsService, create_reddit_search_tool
-from reddit_agent.tool.reddit.models import SearchResult
+from search_agent.tool.reddit.tools import RedditToolsService, create_reddit_search_tool
+from search_agent.tool.reddit.models import SearchResult
 
 
 @pytest.fixture
