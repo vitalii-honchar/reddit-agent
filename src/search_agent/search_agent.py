@@ -72,6 +72,6 @@ def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
                 client_secret=cfg.reddit_config.client_secret,
                 user_agent=cfg.reddit_config.user_agent,
             )
-            tools.append(create_reddit_tools(reddit, cfg.llm))
+            tools.extend(create_reddit_tools(reddit, cfg.llm))
 
     return tools
