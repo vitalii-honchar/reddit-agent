@@ -1,7 +1,7 @@
 
 from praw import Reddit
 from praw.models import Submission, Comment
-from .models import SearchQuery, RedditSubmission, SearchResult, SubmissionFilter
+from .models import SearchQuery, RedditSubmission, SearchResult, RedditSubmissionComment
 from langchain_core.tools import tool
 from datetime import datetime
 from typing import Callable
@@ -22,7 +22,7 @@ class RedditToolsService:
         for submission in submissions:
             if len(res_submissions) >= query.limit:
                 break
-            summarized_submission = self.__submission_matches(query.filter, submission)
+            summarized_submission = self.__submission_matches(query, submission)
             if summarized_submission:
                 res_submissions.append(summarized_submission)
 
@@ -33,11 +33,12 @@ class RedditToolsService:
             submissions=res_submissions,
         )
 
-    def __submission_matches(self, submission_filter: SubmissionFilter, submission: Submission) -> RedditSubmission | None:
+    def __submission_matches(self, query: SearchQuery, submission: Submission) -> RedditSubmission | None:
         # Basic content checks
         if submission.selftext is None or len(submission.selftext.strip()) == 0:
             return None
-            
+
+        submission_filter = query.filter
         if len(submission.selftext.strip()) < submission_filter.min_content_length:
             return None
             
@@ -86,74 +87,19 @@ class RedditToolsService:
             if valuable_ratio < submission_filter.min_valuable_comments_ratio:
                 return None
 
-        # Use heuristic filtering instead of LLM
-        return self.__create_submission_with_heuristic_summary(submission, comments)
+        top_5_comments = sorted(valuable_comments, key=lambda c: c.score, reverse=True)[:5]
 
-    def __create_submission_with_heuristic_summary(self, submission: Submission, comments: list[Comment]) -> RedditSubmission:
-        """Create RedditSubmission with heuristic-based summaries instead of LLM."""
-        
-        # Create submission summary from title and content
-        submission_summary = self.__create_heuristic_submission_summary(submission)
-        
-        # Create comments summary from top comments
-        comments_summary = self.__create_heuristic_comments_summary(comments)
-        
         return RedditSubmission(
             id=submission.id,
-            summary=submission_summary,
-            comments_summary=comments_summary,
+            subreddit=query.subreddit,
+            title=submission.title,
+            selftext=submission.selftext,
+            comments=[RedditSubmissionComment(score=c.score, body=c.body) for c in top_5_comments],
             score=submission.score,
             num_comments=submission.num_comments,
             created_utc=datetime.fromtimestamp(submission.created_utc),
             upvote_ratio=submission.upvote_ratio
         )
-    
-    def __create_heuristic_submission_summary(self, submission: Submission) -> str:
-        """Create a heuristic summary of the submission."""
-        # Start with title
-        summary_parts = [f"Title: {submission.title}"]
-        
-        # Add key metrics
-        summary_parts.append(f"Score: {submission.score}, Upvote ratio: {submission.upvote_ratio:.2f}, Comments: {submission.num_comments}")
-        
-        # Add content preview (first 300 chars)
-        content = submission.selftext.strip()
-        if content:
-            preview = content[:300] + "..." if len(content) > 300 else content
-            summary_parts.append(f"Content: {preview}")
-        
-        # Join and ensure it's at least 500 chars
-        summary = " | ".join(summary_parts)
-        
-        # Pad to minimum length if needed
-        if len(summary) < 500:
-            summary += " " * (500 - len(summary))
-            
-        return summary[:512]  # Ensure max length
-    
-    def __create_heuristic_comments_summary(self, comments: list[Comment]) -> str:
-        """Create a heuristic summary of top comments."""
-        if not comments:
-            return "No comments available" + " " * (500 - len("No comments available"))
-        
-        # Sort comments by score (highest first)
-        sorted_comments = sorted(comments, key=lambda c: c.score, reverse=True)
-        
-        # Take top 3 comments
-        top_comments = sorted_comments[:3]
-        
-        summary_parts = []
-        for i, comment in enumerate(top_comments, 1):
-            comment_text = comment.body[:150] + "..." if len(comment.body) > 150 else comment.body
-            summary_parts.append(f"Comment {i} (score {comment.score}): {comment_text}")
-        
-        summary = " | ".join(summary_parts)
-        
-        # Pad to minimum length if needed
-        if len(summary) < 500:
-            summary += " " * (500 - len(summary))
-            
-        return summary[:512]  # Ensure max length
 
     @staticmethod
     def __download_comments(submission: Submission) -> list[Comment]:
