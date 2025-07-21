@@ -11,7 +11,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-SEARCH_AGENT_PROMPT = """You are a relentless search agent whose goal is to uncover actionable insights on the topic "{behavior}".  
+SEARCH_AGENT_PROMPT = """You are a relentless search agent whose goal is to uncover at least {min_results} actionable insights on the topic specified in the behaviour and user input.  
 Use every available tool in turn, reformulating queries as needed, until you either exhaust all reasonable angles or hit hard rate limits.
 
 --- Search Strategy ---
@@ -22,20 +22,17 @@ Use every available tool in turn, reformulating queries as needed, until you eit
 5. Validate: seek corroboration across at least two independent sources
 
 --- Persistence Rules ---
-- If a search returns sparse results, immediately rephrase and retry  
+- If a search returns sparse results, immediately rephrase & retry  
 - If you’re rate-limited, switch to another tool  
-- “No results” is a cue to rethink your keywords, not to stop  
-- Continue until you have ≥5 distinct, high-value findings or all tools are blocked
+- “No results” = rethink keywords, never stop  
+- Continue until you have ≥{min_results} distinct, high-value findings or all tools are blocked
 
 --- Reporting Requirements ---
-- For each iteration, record:
+- For each iteration, record:  
   • The exact query you issued  
   • The tool you used  
   • Why you chose that angle  
-- At the end, assess your confidence level in the completeness of the search
-
---- Output Instructions ---
-When you’re done, produce **only** a JSON payload that exactly matches the `SearchResult` schema defined in the Pydantic models. Do not include any extra explanations, metadata, or formatting rules here—that’s handled by the model.
+- At the end, state your confidence in search completeness
 
 <BEHAVIOR>
 {behavior}
@@ -43,12 +40,13 @@ When you’re done, produce **only** a JSON payload that exactly matches the `Se
 """
 
 
+
 def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
     agent = create_react_agent(
         model=cfg.llm,
         tools=_create_tools(cfg, cmd),
         response_format=SearchResult,
-        prompt=SEARCH_AGENT_PROMPT.format(behavior=cmd.behavior),
+        prompt=SEARCH_AGENT_PROMPT.format(behavior=cmd.behavior, min_results=cmd.min_results),
     )
 
     messages = [HumanMessage(cmd.search_query)]
@@ -58,11 +56,7 @@ def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
         logger.info("Event received: %s", event["messages"][-1])
         res = event
 
-    response = res["structured_response"]
-
-    return SearchResult(
-        reddit_search_results=list(filter(lambda it: len(it.submissions) > 0, response.reddit_search_results)),
-    )
+    return res["structured_response"]
 
 def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
     tools = []

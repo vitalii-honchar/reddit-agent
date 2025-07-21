@@ -24,7 +24,7 @@ class SubmissionFilter(BaseModel):
 
 
 class SearchQuery(BaseModel):
-    subreddit: str = Field(description="Subreddit name")
+    subreddit: str = Field(description="The name of the subreddit", examples=["python", "IndieHackers"])
     query: str = Field(description="Text search query")
     sort: Literal["relevance", "hot", "top", "new"] = Field(default="top", description="Sort order")
     time_filter: Literal["all", "day", "hour", "month", "week", "year"] = Field(default="month",
@@ -33,35 +33,32 @@ class SearchQuery(BaseModel):
     limit: int = Field(default=25, description="Number of results to return")
 
 
-
 class RedditSubmissionSearchResult(BaseModel):
-    id: str = Field(description="The unique ID of the Reddit submission, e.g. 'g5w4q1'")
-    subreddit: str = Field(description="The name of the subreddit, e.g. 'r/python'")
+    id: str = Field(description="The unique ID of the Reddit submission", examples=["g5w4q1"])
+    subreddit: str = Field(description="The name of the subreddit", examples=["python", "IndieHackers"])
     summary: str = Field(
-        min_length=500,
-        max_length=512,
+        min_length=80,
+        max_length=150,
         description=(
-            "A 500–512 character summary of the submission’s content. "
-            "Focus **only** on information directly relevant to the initial search query—"
-            "no filler or unrelated context—so that downstream analysis can immediately pick up key points."
+            "2–3 concise sentences (80–150 chars) capturing the single most strategic "
+            "tactic or metric related to the original search query. "
+            "Include a numeric or qualitative result (e.g. “+30% conversions,” “5K users in 2 weeks”). "
+            "Omit all background context, anecdotes, or filler—every word must drive value."
         ),
         examples=[
-            "In this post, the OP asks how to optimize their Python loop for large data sets. "
-            "They share benchmark results showing list comprehensions are 30% faster than naive loops, "
-            "and propose using `itertools.chain` to flatten nested lists as a further optimization..."
+            "Posted 3×/week on Twitter & IG → grew followers by 40% in 2 months.",
         ]
     )
     comments_summary: str = Field(
-        min_length=500,
-        max_length=512,
+        max_length=240,
         description=(
-            "A 500–512 character summary of the top-level comments. "
-            "Again, include **only** points that shed light on the original search query—"
-            "collate suggestions, clarifications, or critiques that directly help answer it."
+            "Up to 3 bullet points (each ≤80 chars) starting with an action verb, "
+            "highlighting only tactics or warnings that directly advance the original query. "
+            "Skip off-topic chatter or anecdotes."
         ),
         examples=[
-            "Commenters recommend using `numpy` vectorization instead of pure Python loops for speed gains, "
-            "point out potential memory trade-offs, and share a C-extension approach yielding 5× improvement..."
+            "- Use #IndieDev + #GameDev → doubled post engagement.",
+            "- Collaborate with 2 other devs each week → +15% reach.",
         ]
     )
     score: int = Field(description="The submission’s score (upvotes minus downvotes).")
@@ -75,13 +72,15 @@ class RedditSubmissionSearchResult(BaseModel):
         }
     )
 
+
 class RedditSubmissionComment(BaseModel):
     score: int = Field(description="The comment score (upvotes minus downvotes).")
     body: str = Field(description="The comment body")
 
+
 class RedditSubmission(BaseModel):
-    id: str = Field(description="The unique ID of the Reddit submission, e.g. 'g5w4q1'")
-    subreddit: str = Field(description="The name of the subreddit, e.g. 'r/python'")
+    id: str = Field(description="The unique ID of the Reddit submission", examples=["g5w4q1"])
+    subreddit: str = Field(description="The name of the subreddit", examples=["python", "IndieHackers"])
     title: str = Field(description="Reddit submission title")
     selftext: str = Field(
         description="Reddit submission selftext which matches sarch query",
@@ -102,6 +101,8 @@ class RedditSubmission(BaseModel):
 
 
 class SearchResult(BaseModel):
-    subreddit: str = Field(description="The name of the subreddit, e.g. 'r/python'")
-    submissions: list[RedditSubmissionSearchResult] = Field(default=[],
-                                                description="List of submissions matching the query")
+    subreddit: str = Field(description="The name of the subreddit", examples=["python", "IndieHackers"])
+    submissions: list[RedditSubmission] = Field(
+        default=[],
+        description="List of submissions matching the query"
+    )

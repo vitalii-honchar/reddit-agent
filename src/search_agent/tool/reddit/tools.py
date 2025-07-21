@@ -126,14 +126,55 @@ def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
         query: SearchQuery
     ) -> str:
         """
-        Search Reddit for posts matching specific criteria.
+        Search Reddit for submissions matching detailed criteria and serialize to JSON.
+
+        Steps:
+          1. Query the specified subreddit with `query.query`, `query.sort`, and `query.time_filter`.
+          2. For each submission, enforce:
+             • Minimum title and selftext length
+             • Score ≥ `query.filter.min_score`
+             • Upvote ratio ≥ `query.filter.min_upvote_ratio`
+             • Age ≤ `query.filter.max_days_old` days
+             • No excluded flairs if `query.filter.excluded_flairs` is set
+             • Presence of all `required_keywords` and absence of any `excluded_keywords`
+          3. Download all comments, require ≥ `query.filter.min_comments`
+          4. Compute ratio of comments ≥ `min_comment_score_threshold`, require ≥ `min_valuable_comments_ratio`
+          5. Select top 5 comments by score and include their `score` and `body`
+          6. Stop once `query.limit` valid submissions are collected
 
         Args:
-            query: Search query.
+            query (SearchQuery):
+                - subreddit (str): e.g. 'r/python'
+                - query (str): search keywords
+                - sort (str): 'relevance', 'hot', etc.
+                - time_filter (str): 'all', 'day', 'week', etc.
+                - limit (int): max submissions to return
+                - filter (SubmissionFilter): detailed filter parameters
+
         Returns:
-            SearchResult as JSON containing matching Reddit submissions
+            str: A JSON string matching the `SearchResult` model with fields:
+                {
+                  "subreddit": str,
+                  "submissions": [
+                    {
+                      "id": str,
+                      "title": str,
+                      "selftext": str,
+                      "comments": [{"score": int, "body": str}, …],
+                      "score": int,
+                      "num_comments": int,
+                      "created_utc": "2025-07-20T14:23:00Z",
+                      "upvote_ratio": float
+                    },
+                    …
+                  ]
+                }
         """
-        return reddit_service.search(query).model_dump_json()
+        try:
+            return reddit_service.search(query).model_dump_json()
+        except Exception as e:
+            logging.exception(f"Failed to get Reddit search results: query = {query}")
+            raise e
     
     return reddit_search
 
