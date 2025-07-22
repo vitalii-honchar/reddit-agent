@@ -1,7 +1,7 @@
 from typing import Callable
 
 import praw
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMessage
 from langgraph.prebuilt import create_react_agent
 
 from config import Config
@@ -40,23 +40,43 @@ Use every available tool in turn, reformulating queries as needed, until you eit
 """
 
 
-
 def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
     agent = create_react_agent(
         model=cfg.llm,
         tools=_create_tools(cfg, cmd),
         response_format=SearchResult,
         prompt=SEARCH_AGENT_PROMPT.format(behavior=cmd.behavior, min_results=cmd.min_results),
-    )
+    ).with_config(recursion_limit=cmd.recursion_limit)
 
     messages = [HumanMessage(cmd.search_query)]
-    input = {"messages": messages}
 
-    for event in agent.stream(input, stream_mode='values'):
-        logger.info("Event received: %s", event["messages"][-1])
+    res = None
+    for event in agent.stream({"messages": messages}, stream_mode='values'):
+        _log_message(event["messages"][-1])
         res = event
 
+    if res is None:
+        raise RuntimeError("No search results found")
     return res["structured_response"]
+
+
+def _log_message(message: BaseMessage):
+    params = {
+        "type": message.type,
+        "content": message.content,
+        "content_length": str(len(message.content)),
+    }
+
+    if isinstance(message, ToolMessage):
+        params["tool_name"] = message.name
+        params["tool_call_id"] = message.tool_call_id
+    elif isinstance(message, AIMessage):
+        tool_calls = [{"name": t["name"], "id": t["id"]} for t in message.tool_calls]
+        params["tool_calls"] = str(tool_calls)
+        params["tool_calls_size"] = str(len(tool_calls))
+
+    logger.info("Handle message: %s", params)
+
 
 def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
     tools = []

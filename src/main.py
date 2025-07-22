@@ -99,24 +99,8 @@ def main():
     result = execute_search(config, command)
     
     # Log results
-    logger.info(f"Search completed. Found {len(result.reddit_search_results)} search results")
-    
-    total_findings = sum(len(search_result.submissions) for search_result in result.reddit_search_results)
-    logger.info(f"Total findings: {total_findings}")
-    
-    # Print results summary
-    for i, search_result in enumerate(result.reddit_search_results):
-        print(f"\n=== Search Result {i+1} ===")
-        print(f"Subreddit: {search_result.subreddit}")
-        print(f"Number of submissions: {len(search_result.submissions)}")
-        
-        for j, submission in enumerate(search_result.submissions):
-            print(f"\n--- Submission {j+1} ---")
-            print(f"Title: {submission.title}")
-            print(f"Score: {submission.score}")
-            print(f"Comments: {submission.num_comments}")
-            print(f"URL: {submission.url}")
-            print(f"Summary: {submission.summary[:200]}...")
+    logger.info(f"Search completed. Found {len(result.reddit_search_results)} search results:")
+    logger.info(result.model_dump_json(indent=2))
 
 if __name__ == "__main__":
     main()

@@ -41,3 +41,4 @@ class CreateSearchAgentCommand(BaseModel):
         ),
         examples=[5]
     )
+    recursion_limit: int = Field(default=25, description="Maximum recursion limit.", examples=[25, 50])
