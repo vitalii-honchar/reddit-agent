@@ -3,13 +3,13 @@ import logging
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from praw import Reddit
 from langchain_openai import ChatOpenAI
 
 from config import Config
 from config.config import RedditConfig
 from search_agent.models import CreateSearchAgentCommand
 from search_agent.search_agent import execute_search
+import asyncio
 
 # Configure logging
 logging.basicConfig(
@@ -61,7 +61,7 @@ def create_config() -> Config:
     
     return Config(llm=llm, reddit_config=reddit_config)
 
-def main():
+async def main():
     """Main function to execute search agent."""
     logger.info("Starting search agent...")
     
@@ -96,11 +96,11 @@ def main():
     logger.info(f"Executing search with query: {command.search_query}")
     
     # Execute search
-    result = execute_search(config, command)
+    result = await execute_search(config, command)
     
     # Log results
     logger.info(f"Search completed. Found {len(result.reddit_search_results)} search results:")
     logger.info(result.model_dump_json(indent=2))
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

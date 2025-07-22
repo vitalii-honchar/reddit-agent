@@ -1,6 +1,6 @@
 
-from praw import Reddit
-from praw.models import Submission, Comment
+import asyncpraw
+from asyncpraw.models import Submission, Comment
 from .models import SearchQuery, RedditSubmission, SearchResult, RedditSubmissionComment
 from langchain_core.tools import tool
 from datetime import datetime
@@ -9,20 +9,20 @@ import logging
 
 class RedditToolsService:
 
-    def __init__(self, reddit: Reddit):
+    def __init__(self, reddit: asyncpraw.Reddit):
         self.reddit = reddit
 
-    def search(self, query: SearchQuery) -> SearchResult:
+    async def search(self, query: SearchQuery) -> SearchResult:
         logging.info(f"Searching reddit: query = {query}")
-        subreddit = self.reddit.subreddit(query.subreddit)
+        subreddit = await self.reddit.subreddit(query.subreddit)
         submissions = subreddit.search(query=query.query, sort=query.sort, time_filter=query.time_filter)
 
         res_submissions = []
 
-        for submission in submissions:
+        async for submission in submissions:
             if len(res_submissions) >= query.limit:
                 break
-            summarized_submission = self.__submission_matches(query, submission)
+            summarized_submission = await self.__submission_matches(query, submission)
             if summarized_submission:
                 res_submissions.append(summarized_submission)
 
@@ -33,7 +33,10 @@ class RedditToolsService:
             submissions=res_submissions,
         )
 
-    def __submission_matches(self, query: SearchQuery, submission: Submission) -> RedditSubmission | None:
+    async def __submission_matches(self, query: SearchQuery, submission: Submission) -> RedditSubmission | None:
+        # Load submission data first
+        await submission.load()
+        
         # Basic content checks
         if submission.selftext is None or len(submission.selftext.strip()) == 0:
             return None
@@ -76,7 +79,7 @@ class RedditToolsService:
                 return None
 
         # Comments check
-        comments = self.__download_comments(submission)
+        comments = await self.__download_comments(submission)
         if len(comments) < submission_filter.min_comments:
             return None
 
@@ -102,10 +105,8 @@ class RedditToolsService:
         )
 
     @staticmethod
-    def __download_comments(submission: Submission) -> list[Comment]:
+    async def __download_comments(submission: Submission) -> list[Comment]:
         try:
-            # submission.comments.replace_more(limit=None)
-            
             all_comments = []
             for comment in submission.comments.list():
                 if isinstance(comment, Comment):
@@ -122,7 +123,7 @@ def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
     """Create a LangGraph-compatible tool for Reddit search."""
     
     @tool("reddit_search")
-    def reddit_search(
+    async def reddit_search(
         query: SearchQuery
     ) -> str:
         """
@@ -171,14 +172,15 @@ def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
                 }
         """
         try:
-            return reddit_service.search(query).model_dump_json()
+            result = await reddit_service.search(query)
+            return result.model_dump_json()
         except Exception as e:
             logging.exception(f"Failed to get Reddit search results: query = {query}")
             raise e
     
     return reddit_search
 
-def create_reddit_tools(reddit: Reddit) -> list[Callable]:
+def create_reddit_tools(reddit: asyncpraw.Reddit) -> list[Callable]:
     svc = RedditToolsService(reddit)
     return [
         create_reddit_search_tool(svc),

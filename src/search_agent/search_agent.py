@@ -1,6 +1,6 @@
 from typing import Callable
 
-import praw
+import asyncpraw
 from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMessage
 from langgraph.prebuilt import create_react_agent
 
@@ -40,7 +40,7 @@ Use every available tool in turn, reformulating queries as needed, until you eit
 """
 
 
-def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
+async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
     agent = create_react_agent(
         model=cfg.llm,
         tools=_create_tools(cfg, cmd),
@@ -51,7 +51,7 @@ def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
     messages = [HumanMessage(cmd.search_query)]
 
     res = None
-    for event in agent.stream({"messages": messages}, stream_mode='values'):
+    async for event in agent.astream({"messages": messages}, stream_mode='values'):
         _log_message(event["messages"][-1])
         res = event
 
@@ -83,7 +83,7 @@ def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
 
     for search_type in cmd.search_types:
         if search_type == "reddit":
-            reddit = praw.Reddit(
+            reddit = asyncpraw.Reddit(
                 client_id=cfg.reddit_config.client_id,
                 client_secret=cfg.reddit_config.client_secret,
                 user_agent=cfg.reddit_config.user_agent,
