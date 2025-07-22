@@ -40,3 +40,67 @@ class TestSearchAgentIntegration:
         assert result is not None
         assert isinstance(result, SearchResult)
         assert len(result.reddit_search_results) >= 5, "Should find at least one Reddit search result"
+
+    @pytest.mark.asyncio
+    async def test_search_ai_ml_startup_opportunities(self, config: Config):
+        """Test searching for AI/ML startup opportunities and trends."""
+        # given
+        command = CreateSearchAgentCommand(
+            behavior="""You are searching for opportunities in the AI/ML startup space.
+            
+            Focus on:
+            - Emerging AI/ML trends and market gaps
+            - Funding opportunities for AI startups
+            - Technical discussions about AI implementation challenges
+            - Posts about AI product launches and user feedback
+            - Enterprise AI adoption stories and pain points
+            
+            Strict restrictions:
+            - Only include posts with at least 15 upvotes and 8 comments
+            - Focus on actionable insights for AI entrepreneurs
+            - Prioritize posts from established AI/ML communities
+            - Exclude basic tutorials or beginner questions
+            - Look for market validation and business model discussions""",
+            search_query="AI ML startup opportunities machine learning business",
+            search_types={"reddit"}
+        )
+
+        # when
+        result = await execute_search(config, command)
+
+        # then
+        assert result is not None
+        assert isinstance(result, SearchResult)
+        assert len(result.reddit_search_results) >= 3, "Should find AI/ML related results"
+
+    @pytest.mark.asyncio
+    async def test_search_saas_product_launch_strategies(self, config: Config):
+        """Test searching for SaaS product launch strategies and growth tactics."""
+        # given
+        command = CreateSearchAgentCommand(
+            behavior="""You are researching SaaS product launch strategies and growth tactics.
+            
+            Focus on:
+            - Successful SaaS product launch case studies
+            - Customer acquisition strategies for B2B SaaS
+            - Pricing strategies and revenue model discussions
+            - Product-market fit validation techniques
+            - Growth hacking tactics specific to SaaS companies
+            
+            Strict restrictions:
+            - Only include posts with at least 20 upvotes and 10 comments
+            - Focus on proven strategies with measurable results
+            - Prioritize posts from experienced SaaS founders
+            - Exclude generic marketing advice not SaaS-specific
+            - Look for posts with concrete metrics and outcomes""",
+            search_query="SaaS product launch strategies customer acquisition growth",
+            search_types={"reddit"}
+        )
+
+        # when
+        result = await execute_search(config, command)
+
+        # then
+        assert result is not None
+        assert isinstance(result, SearchResult)
+        assert len(result.reddit_search_results) >= 3, "Should find SaaS strategy results"
