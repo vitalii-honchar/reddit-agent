@@ -1,6 +1,7 @@
 """Integration test for search agent finding marketing opportunities for indie projects."""
 import pytest
 from config import Config
+from search_agent import SearchResult
 from search_agent.models import CreateSearchAgentCommand
 from search_agent.search_agent import execute_search
 
@@ -37,9 +38,5 @@ class TestSearchAgentIntegration:
 
         # then
         assert result is not None
-        assert hasattr(result, 'reddit_search_results')
-        assert len(result.reddit_search_results) >= 1, "Should find at least one Reddit search result"
-        
-        # Check that we have results with findings
-        total_findings = sum(len(search_result.submissions) for search_result in result.reddit_search_results)
-        assert total_findings >= 1, f"Expected at least 1 finding, but got {total_findings}"
+        assert isinstance(result, SearchResult)
+        assert len(result.reddit_search_results) >= 5, "Should find at least one Reddit search result"
