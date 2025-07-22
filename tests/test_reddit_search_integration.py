@@ -1,7 +1,7 @@
 """Integration test for Reddit search tool using async"""
 import pytest
 
-from search_agent.tool.reddit.models import SearchResult, SearchQuery, SubmissionFilter
+from search_agent.tool.reddit.models import SearchQuery, SubmissionFilter
 from search_agent.tool.reddit.tools import RedditToolsService
 
 

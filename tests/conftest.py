@@ -4,6 +4,7 @@ from typing import Callable, AsyncGenerator
 
 import asyncpraw
 import pytest
+import pytest_asyncio
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
@@ -11,13 +12,15 @@ from config import Config
 from search_agent.tool.reddit.tools import RedditToolsService, create_reddit_search_tool
 
 
-@pytest.fixture
-def reddit_client(config: Config) -> asyncpraw.Reddit:
-    return asyncpraw.Reddit(
+@pytest_asyncio.fixture
+async def reddit_client(config: Config) -> AsyncGenerator[asyncpraw.Reddit, None]:
+    reddit = asyncpraw.Reddit(
         client_id=config.reddit_config.client_id,
         client_secret=config.reddit_config.client_secret,
         user_agent=config.reddit_config.user_agent
     )
+    yield reddit
+    await reddit.close()
 
 @pytest.fixture
 def config() -> Config:
@@ -56,14 +59,7 @@ def config() -> Config:
         reddit_config=reddit_config
     )
 
-@pytest.fixture
-def reddit_service(reddit_client: asyncpraw.Reddit) -> RedditToolsService:
+@pytest_asyncio.fixture
+async def reddit_service(reddit_client) -> AsyncGenerator[RedditToolsService, None]:
     """Create Reddit tools service."""
-    return RedditToolsService(reddit=reddit_client)
-
-
-@pytest.fixture
-def reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
-    """Create Reddit search tool."""
-    return create_reddit_search_tool(reddit_service)
-
+    yield RedditToolsService(reddit=reddit_client)
