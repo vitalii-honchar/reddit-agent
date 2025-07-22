@@ -4,7 +4,7 @@ from asyncpraw.models import Submission, Comment
 from .models import SearchQuery, RedditSubmission, SearchResult, RedditSubmissionComment, SubmissionFilter
 from langchain_core.tools import tool
 from datetime import datetime
-from typing import Callable, Protocol
+from typing import Callable
 from abc import ABC, abstractmethod
 import logging
 

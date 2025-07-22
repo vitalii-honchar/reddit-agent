@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Callable, AsyncGenerator
+from typing import AsyncGenerator
 
 import asyncpraw
 import pytest
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 from config import Config
-from search_agent.tool.reddit.tools import RedditToolsService, create_reddit_search_tool
+from search_agent.tool.reddit.tools import RedditToolsService
 
 
 @pytest_asyncio.fixture
