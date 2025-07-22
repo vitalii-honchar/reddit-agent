@@ -54,9 +54,9 @@ def create_config() -> Config:
         raise ValueError("OpenAI API key not configured. Please set OPENAI_API_KEY in .env file")
     
     llm = ChatOpenAI(
-        model="gpt-4o",
+        model="gpt-4.1",
         temperature=0.1,
-        api_key=api_key
+        api_key=api_key,
     )
     
     return Config(llm=llm, reddit_config=reddit_config)
