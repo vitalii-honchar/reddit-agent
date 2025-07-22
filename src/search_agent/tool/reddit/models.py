@@ -4,23 +4,40 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 class SubmissionFilter(BaseModel):
-    min_score: int = Field(description="Minimal reddit submission score to include post in the result")
-    min_comments: int = Field(description="Minimal number of comments to include in the result")
-    min_upvote_ratio: float = Field(default=0.7, description="Minimal upvote ratio (0.0-1.0)")
-    max_days_old: int = Field(default=30, description="Maximum age of submission in days")
-    min_title_length: int = Field(default=10, description="Minimum title length in characters")
-    min_content_length: int = Field(default=50, description="Minimum content length in characters")
-    required_keywords: list[str] = Field(default=[],
-                                         description="Keywords that must appear in title or content (case insensitive)")
-    excluded_keywords: list[str] = Field(default=[],
-                                         description="Keywords that exclude post if found in title or content (case insensitive)")
-    excluded_flairs: list[str] = Field(default=[], description="Post flairs to exclude (case insensitive)")
-    min_comment_score_threshold: int = Field(default=2,
-                                             description="Minimum score for comments to be considered valuable")
-    min_valuable_comments_ratio: float = Field(default=0.3,
-                                               description="Minimum ratio of valuable comments (score >= threshold)")
-    filter_prompt: str = Field(default="",
-                               description="Legacy field - kept for backward compatibility but not used in heuristic filtering")
+    min_score: int = Field(
+        default=5,
+        description="Minimal reddit submission score to include post in the result",
+        examples=[5])
+    min_comments: int = Field(
+        default=5,
+        description="Minimal number of comments to include in the result",
+        examples=[5])
+    min_upvote_ratio: float = Field(default=0.7, description="Minimal upvote ratio (0.0-1.0)", examples=[0.7])
+    max_days_old: int = Field(default=30, description="Maximum age of submission in days", examples=[30])
+    min_title_length: int = Field(default=10, description="Minimum title length in characters", examples=[10])
+    min_content_length: int = Field(default=50, description="Minimum content length in characters", examples=[50])
+    required_keywords: list[str] = Field(
+        default=[],
+        description="Keywords that must appear in title or content (case insensitive)",
+        examples=["python"])
+    excluded_keywords: list[str] = Field(
+        default=[],
+        description="Keywords that exclude post if found in title or content (case insensitive)",
+        examples=["test"])
+    excluded_flairs: list[str] = Field(default=[], description="Post flairs to exclude (case insensitive)",
+                                       examples=["python"])
+    min_comment_score_threshold: int = Field(
+        default=2,
+        description="Minimum score for comments to be considered valuable",
+        examples=[2])
+    min_valuable_comments_ratio: float = Field(
+        default=0.3,
+        description="Minimum ratio of valuable comments (score >= threshold)",
+        examples=[0.3])
+    filter_prompt: str = Field(
+        default="",
+        description="Legacy field - kept for backward compatibility but not used in heuristic filtering",
+        examples=["python"])
 
 
 class SearchQuery(BaseModel):

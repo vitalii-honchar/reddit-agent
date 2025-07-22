@@ -1,16 +1,133 @@
 
 import asyncpraw
 from asyncpraw.models import Submission, Comment
-from .models import SearchQuery, RedditSubmission, SearchResult, RedditSubmissionComment
+from .models import SearchQuery, RedditSubmission, SearchResult, RedditSubmissionComment, SubmissionFilter
 from langchain_core.tools import tool
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Protocol
+from abc import ABC, abstractmethod
 import logging
+
+class SubmissionFilterStrategy(ABC):
+    """Abstract base class for submission filtering strategies."""
+    
+    @abstractmethod
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        """Return True if submission passes this filter, False otherwise."""
+        pass
+
+
+class ContentLengthFilter(SubmissionFilterStrategy):
+    """Filters submissions based on title and content length."""
+    
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        if submission.selftext is None or len(submission.selftext.strip()) == 0:
+            return False
+        
+        if len(submission.selftext.strip()) < submission_filter.min_content_length:
+            return False
+            
+        if len(submission.title.strip()) < submission_filter.min_title_length:
+            return False
+            
+        return True
+
+
+class ScoreFilter(SubmissionFilterStrategy):
+    """Filters submissions based on score and upvote ratio."""
+    
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        if submission.score < submission_filter.min_score:
+            return False
+            
+        if submission.upvote_ratio < submission_filter.min_upvote_ratio:
+            return False
+            
+        return True
+
+
+class AgeFilter(SubmissionFilterStrategy):
+    """Filters submissions based on age."""
+    
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        submission_age_days = (datetime.now() - datetime.fromtimestamp(submission.created_utc)).days
+        return submission_age_days <= submission_filter.max_days_old
+
+
+class FlairFilter(SubmissionFilterStrategy):
+    """Filters submissions based on excluded flairs."""
+    
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        if submission.link_flair_text and submission_filter.excluded_flairs:
+            return not any(flair.lower() in submission.link_flair_text.lower() 
+                          for flair in submission_filter.excluded_flairs)
+        return True
+
+
+class KeywordFilter(SubmissionFilterStrategy):
+    """Filters submissions based on required and excluded keywords."""
+    
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        content_text = (submission.title + " " + submission.selftext).lower()
+        
+        # Required keywords check
+        if submission_filter.required_keywords:
+            if not all(keyword.lower() in content_text for keyword in submission_filter.required_keywords):
+                return False
+                
+        # Excluded keywords check
+        if submission_filter.excluded_keywords:
+            if any(keyword.lower() in content_text for keyword in submission_filter.excluded_keywords):
+                return False
+                
+        return True
+
+
+class CommentsFilter(SubmissionFilterStrategy):
+    """Filters submissions based on comments count and quality."""
+    
+    async def filter(self, submission: Submission, submission_filter: SubmissionFilter, **kwargs) -> bool:
+        comments = kwargs.get('comments', [])
+        
+        if len(comments) < submission_filter.min_comments:
+            return False
+
+        # Valuable comments ratio check
+        valuable_comments = [c for c in comments if c.score >= submission_filter.min_comment_score_threshold]
+        if len(comments) > 0:
+            valuable_ratio = len(valuable_comments) / len(comments)
+            if valuable_ratio < submission_filter.min_valuable_comments_ratio:
+                return False
+                
+        return True
+
+
+class SubmissionFilterManager:
+    """Manages and applies multiple filter strategies."""
+    
+    def __init__(self):
+        self.filters = [
+            ContentLengthFilter(),
+            ScoreFilter(),
+            AgeFilter(),
+            FlairFilter(),
+            KeywordFilter(),
+            CommentsFilter(),
+        ]
+    
+    async def apply_filters(self, submission: Submission, submission_filter: SubmissionFilter, comments: list) -> bool:
+        """Apply all filters to a submission. Returns True if all filters pass."""
+        for filter_strategy in self.filters:
+            if not await filter_strategy.filter(submission, submission_filter, comments=comments):
+                return False
+        return True
+
 
 class RedditToolsService:
 
     def __init__(self, reddit: asyncpraw.Reddit):
         self.reddit = reddit
+        self.filter_manager = SubmissionFilterManager()
 
     async def search(self, query: SearchQuery) -> SearchResult:
         logging.info(f"Searching reddit: query = {query}")
@@ -37,59 +154,15 @@ class RedditToolsService:
         # Load submission data first
         await submission.load()
         
-        # Basic content checks
-        if submission.selftext is None or len(submission.selftext.strip()) == 0:
-            return None
-
-        submission_filter = query.filter
-        if len(submission.selftext.strip()) < submission_filter.min_content_length:
-            return None
-            
-        if len(submission.title.strip()) < submission_filter.min_title_length:
-            return None
-
-        # Score and engagement checks
-        if submission.score < submission_filter.min_score:
-            return None
-            
-        if submission.upvote_ratio < submission_filter.min_upvote_ratio:
-            return None
-
-        # Age check
-        submission_age_days = (datetime.now() - datetime.fromtimestamp(submission.created_utc)).days
-        if submission_age_days > submission_filter.max_days_old:
-            return None
-
-        # Flair check
-        if submission.link_flair_text and submission_filter.excluded_flairs:
-            if any(flair.lower() in submission.link_flair_text.lower() for flair in submission_filter.excluded_flairs):
-                return None
-
-        # Keyword checks
-        content_text = (submission.title + " " + submission.selftext).lower()
-        
-        # Required keywords check
-        if submission_filter.required_keywords:
-            if not all(keyword.lower() in content_text for keyword in submission_filter.required_keywords):
-                return None
-                
-        # Excluded keywords check
-        if submission_filter.excluded_keywords:
-            if any(keyword.lower() in content_text for keyword in submission_filter.excluded_keywords):
-                return None
-
-        # Comments check
+        # Download comments early as they're needed for filtering
         comments = await self.__download_comments(submission)
-        if len(comments) < submission_filter.min_comments:
+        
+        # Apply all filters using the strategy pattern
+        if not await self.filter_manager.apply_filters(submission, query.filter, comments):
             return None
 
-        # Valuable comments ratio check
-        valuable_comments = [c for c in comments if c.score >= submission_filter.min_comment_score_threshold]
-        if len(comments) > 0:
-            valuable_ratio = len(valuable_comments) / len(comments)
-            if valuable_ratio < submission_filter.min_valuable_comments_ratio:
-                return None
-
+        # If we reach here, all filters passed - create and return the result
+        valuable_comments = [c for c in comments if c.score >= query.filter.min_comment_score_threshold]
         top_5_comments = sorted(valuable_comments, key=lambda c: c.score, reverse=True)[:5]
 
         return RedditSubmission(
