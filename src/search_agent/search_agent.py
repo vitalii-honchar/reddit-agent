@@ -2,28 +2,35 @@ from typing import Callable
 
 import asyncpraw
 from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMessage
-from langchain_core.messages.utils import count_tokens_approximately
 from langgraph.prebuilt import create_react_agent
 
 from config import Config
 from prompt.prompt_manager import PromptManager
 from search_agent.models import CreateSearchAgentCommand, SearchResult
 from search_agent.tool import create_reddit_tools
+from search_agent.hooks import SummarizationHook
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
-    # Load the search agent prompt using PromptManager
     prompt_manager = PromptManager(cfg.prompt_folder)
     search_agent_prompt = prompt_manager.load_prompt("search_agent", "system")
+    
+    summarization_hook = SummarizationHook(
+        llm=cfg.llm,
+        prompt_manager=prompt_manager,
+        max_tokens=cmd.max_tokens,
+        max_summary_tokens=cmd.max_summary_tokens
+    ).create_hook()
     
     agent = create_react_agent(
         model=cfg.llm,
         tools=_create_tools(cfg, cmd),
         response_format=SearchResult,
         prompt=search_agent_prompt.format(behavior=cmd.behavior, min_results=cmd.min_results),
+        pre_model_hook=summarization_hook,
     ).with_config(recursion_limit=cmd.recursion_limit)
 
     messages = [HumanMessage(cmd.search_query)]
@@ -54,6 +61,8 @@ def _log_message(message: BaseMessage):
         params["tool_calls_size"] = str(len(tool_calls))
 
     logger.info("Handle message: %s", params)
+
+
 
 
 def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
