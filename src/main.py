@@ -60,7 +60,7 @@ def create_config() -> Config:
     )
     
     # Set prompt folder path
-    project_root = Path(__file__).parent.parent.parent
+    project_root = Path(__file__).parent.parent
     prompt_folder = project_root / "prompts"
     
     return Config(llm=llm, reddit_config=reddit_config, prompt_folder=prompt_folder)
