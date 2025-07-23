@@ -47,18 +47,15 @@ Assign relevance_score (0.0-1.0) based on:
 
 ## Result Processing
 
-### For Reddit Submissions
-Extract from each valuable post:
-- summary: 2-3 sentences (80-150 chars) with the core tactic + its measurable result
-- comments_summary: Up to 3 bullet points from comments that add tactical value
-- Focus on specifics: tools used, exact strategies, timing, metrics
-
-### For Unified Findings  
-Transform quality results into findings with:
+Transform each quality result into a Finding:
+- source: Platform name (currently "reddit")
+- source_id: Original post/content ID for reference
 - title: Original post title
 - summary: Core insight with tactic + outcome (80-150 chars)
 - action_items: 1-3 implementable tactics (≤80 chars each, start with verb)
 - relevance_score: How well it answers the original query (0.0-1.0)
+
+Focus exclusively on extracting actionable value - skip all fluff, context, and stories.
 
 ## Metadata Tracking
 
