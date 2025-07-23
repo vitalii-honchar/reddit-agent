@@ -1,7 +1,6 @@
 from typing import Literal
 
 from pydantic import BaseModel, Field
-from search_agent.tool import RedditSubmissionSearchResult
 
 
 class Finding(BaseModel):
@@ -100,10 +99,6 @@ class SearchMetadata(BaseModel):
 
 
 class SearchResult(BaseModel):
-    reddit_search_results: list[RedditSubmissionSearchResult] = Field(
-        default=[],
-        description="Raw Reddit search results before processing into unified findings."
-    )
     findings: list[Finding] = Field(
         description=(
             "Curated list of high-quality, actionable insights from all sources. "

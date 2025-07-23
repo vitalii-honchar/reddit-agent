@@ -39,7 +39,7 @@ class TestSearchAgentIntegration:
         # then
         assert result is not None
         assert isinstance(result, SearchResult)
-        assert len(result.reddit_search_results) >= 5, "Should find at least one Reddit search result"
+        assert len(result.findings) >= 5, "Should find at least one Reddit search result"
 
     @pytest.mark.asyncio
     async def test_search_ai_ml_startup_opportunities(self, config: Config):
@@ -71,7 +71,7 @@ class TestSearchAgentIntegration:
         # then
         assert result is not None
         assert isinstance(result, SearchResult)
-        assert len(result.reddit_search_results) >= 3, "Should find AI/ML related results"
+        assert len(result.findings) >= 3, "Should find AI/ML related results"
 
     @pytest.mark.asyncio
     async def test_search_saas_product_launch_strategies(self, config: Config):
@@ -103,4 +103,4 @@ class TestSearchAgentIntegration:
         # then
         assert result is not None
         assert isinstance(result, SearchResult)
-        assert len(result.reddit_search_results) >= 3, "Should find SaaS strategy results"
+        assert len(result.findings) >= 3, "Should find SaaS strategy results"

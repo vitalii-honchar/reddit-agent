@@ -50,46 +50,6 @@ class SearchQuery(BaseModel):
     limit: int = Field(default=25, description="Number of results to return")
 
 
-class RedditSubmissionSearchResult(BaseModel):
-    id: str = Field(description="The unique ID of the Reddit submission", examples=["g5w4q1"])
-    subreddit: str = Field(description="The name of the subreddit", examples=["python", "IndieHackers"])
-    summary: str = Field(
-        min_length=80,
-        max_length=150,
-        description=(
-            "2–3 concise sentences (80–150 chars) capturing the single most strategic "
-            "tactic or metric related to the original search query. "
-            "Include a numeric or qualitative result (e.g. “+30% conversions,” “5K users in 2 weeks”). "
-            "Omit all background context, anecdotes, or filler—every word must drive value."
-        ),
-        examples=[
-            "Posted 3×/week on Twitter & IG → grew followers by 40% in 2 months.",
-        ]
-    )
-    comments_summary: str = Field(
-        max_length=240,
-        description=(
-            "Up to 3 bullet points (each ≤80 chars) starting with an action verb, "
-            "highlighting only tactics or warnings that directly advance the original query. "
-            "Skip off-topic chatter or anecdotes."
-        ),
-        examples=[
-            "- Use #IndieDev + #GameDev → doubled post engagement.",
-            "- Collaborate with 2 other devs each week → +15% reach.",
-        ]
-    )
-    score: int = Field(description="The submission’s score (upvotes minus downvotes).")
-    num_comments: int = Field(description="Total number of comments on the submission.")
-    created_utc: datetime = Field(description="Submission creation timestamp in UTC (ISO 8601).")
-    upvote_ratio: float = Field(description="Fraction of upvotes out of total votes.")
-
-    model_config = ConfigDict(
-        json_encoders={
-            datetime: lambda v: v.isoformat()
-        }
-    )
-
-
 class RedditSubmissionComment(BaseModel):
     score: int = Field(description="The comment score (upvotes minus downvotes).")
     body: str = Field(description="The comment body")
