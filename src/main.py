@@ -59,7 +59,11 @@ def create_config() -> Config:
         api_key=api_key,
     )
     
-    return Config(llm=llm, reddit_config=reddit_config)
+    # Set prompt folder path
+    project_root = Path(__file__).parent.parent.parent
+    prompt_folder = project_root / "prompts"
+    
+    return Config(llm=llm, reddit_config=reddit_config, prompt_folder=prompt_folder)
 
 async def main():
     """Main function to execute search agent."""
@@ -99,7 +103,6 @@ async def main():
     result = await execute_search(config, command)
     
     # Log results
-    logger.info(f"Search completed. Found {len(result.reddit_search_results)} search results:")
     logger.info(result.model_dump_json(indent=2))
 
 if __name__ == "__main__":

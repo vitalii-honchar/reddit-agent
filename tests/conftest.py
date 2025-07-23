@@ -50,13 +50,17 @@ def config() -> Config:
         user_agent=user_agent
     )
 
+    # Set prompt folder path
+    prompt_folder = project_root / "prompts"
+
     return Config(
         llm=ChatOpenAI(
             model="gpt-4.1",
             temperature=0.1,
             api_key=api_key
         ),
-        reddit_config=reddit_config
+        reddit_config=reddit_config,
+        prompt_folder=prompt_folder
     )
 
 @pytest_asyncio.fixture

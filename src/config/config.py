@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
 
@@ -12,4 +13,5 @@ class RedditConfig:
 class Config:
     llm: BaseChatModel
     reddit_config: RedditConfig
+    prompt_folder: Path
 

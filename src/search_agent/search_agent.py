@@ -5,47 +5,24 @@ from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMe
 from langgraph.prebuilt import create_react_agent
 
 from config import Config
+from prompt.prompt_manager import PromptManager
 from search_agent.models import CreateSearchAgentCommand, SearchResult
 from search_agent.tool import create_reddit_tools
 import logging
 
 logger = logging.getLogger(__name__)
 
-SEARCH_AGENT_PROMPT = """You are a relentless search agent whose goal is to uncover at least {min_results} actionable insights on the topic specified in the behaviour and user input.  
-Use every available tool in turn, reformulating queries as needed, until you either exhaust all reasonable angles or hit hard rate limits.
-
---- Search Strategy ---
-1. Diversify phrasing: synonyms, jargon, casual vs. technical  
-2. Zoom in and out: start broad → refine → broaden again  
-3. Cross-platform: mix searches across Reddit, Google, StackOverflow, etc.  
-4. Iterate on results: build new queries from your findings  
-5. Validate: seek corroboration across at least two independent sources
-
---- Persistence Rules ---
-- If a search returns sparse results, immediately rephrase & retry  
-- If you’re rate-limited, switch to another tool  
-- “No results” = rethink keywords, never stop  
-- Continue until you have ≥{min_results} distinct, high-value findings or all tools are blocked
-
---- Reporting Requirements ---
-- For each iteration, record:  
-  • The exact query you issued  
-  • The tool you used  
-  • Why you chose that angle  
-- At the end, state your confidence in search completeness
-
-<BEHAVIOR>
-{behavior}
-</BEHAVIOR>
-"""
-
 
 async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
+    # Load the search agent prompt using PromptManager
+    prompt_manager = PromptManager(cfg.prompt_folder)
+    search_agent_prompt = prompt_manager.load_prompt("search_agent", "system")
+    
     agent = create_react_agent(
         model=cfg.llm,
         tools=_create_tools(cfg, cmd),
         response_format=SearchResult,
-        prompt=SEARCH_AGENT_PROMPT.format(behavior=cmd.behavior, min_results=cmd.min_results),
+        prompt=search_agent_prompt.format(behavior=cmd.behavior, min_results=cmd.min_results),
     ).with_config(recursion_limit=cmd.recursion_limit)
 
     messages = [HumanMessage(cmd.search_query)]
