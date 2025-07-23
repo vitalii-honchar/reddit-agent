@@ -2,6 +2,7 @@ from typing import Callable
 
 import asyncpraw
 from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMessage
+from langchain_core.messages.utils import count_tokens_approximately
 from langgraph.prebuilt import create_react_agent
 
 from config import Config

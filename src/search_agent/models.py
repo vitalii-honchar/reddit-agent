@@ -2,9 +2,10 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+SourceLiteral = Literal["reddit"]
 
 class Finding(BaseModel):
-    source: Literal["reddit"] = Field(
+    source: SourceLiteral = Field(
         description="Platform where this finding was discovered. Currently only 'reddit' supported.",
         examples=["reddit"]
     )
@@ -60,6 +61,14 @@ class Finding(BaseModel):
         examples=[0.95, 0.7, 0.3]
     )
 
+class FilteringStats(BaseModel):
+    accepted: int = Field(description="Total results that passed quality filters")
+    rejected: int = Field(description="Total results filtered out")
+    low_quality: int = Field(default=0, description="Rejected for being vague or lacking specifics")
+    off_topic: int = Field(default=0, description="Rejected for not matching the query")
+    promotional: int = Field(default=0, description="Rejected for being spam/marketing")
+    too_old: int = Field(default=0, description="Rejected for outdated information")
+    no_specifics: int = Field(default=0, description="Rejected for lacking actionable details")
 
 class SearchMetadata(BaseModel):
     total_searches: int = Field(
@@ -67,22 +76,11 @@ class SearchMetadata(BaseModel):
         description="Total number of search queries executed across all platforms.",
         examples=[12, 25, 7]
     )
-    searches_by_source: dict[str, int] = Field(
-        description="Breakdown of searches performed on each platform.",
+    filtering_stats: FilteringStats = Field(
+        description="Quality filtering statistics showing accepted vs rejected content.",
         examples=[
-            {"reddit": 12},
-            {"reddit": 8, "twitter": 4},
-            {"reddit": 15, "stack_overflow": 10}
-        ]
-    )
-    filtering_stats: dict[str, int] = Field(
-        description=(
-            "Quality filtering statistics showing accepted vs rejected content. "
-            "Keys typically include 'accepted', 'rejected', 'low_quality', 'off_topic', etc."
-        ),
-        examples=[
-            {"accepted": 5, "rejected": 20, "low_quality": 15, "off_topic": 5},
-            {"accepted": 8, "rejected": 40, "promotional": 10, "too_old": 12, "no_specifics": 18}
+            FilteringStats(accepted=5, rejected=20, low_quality=15, off_topic=5),
+            FilteringStats(accepted=8, rejected=40, promotional=10, too_old=12, no_specifics=18)
         ]
     )
     confidence: float = Field(
@@ -126,7 +124,7 @@ class CreateSearchAgentCommand(BaseModel):
         ),
         examples=["indie game marketing strategies Twitter engagement"]
     )
-    search_types: set[Literal["reddit"]] = Field(
+    search_types: set[SourceLiteral] = Field(
         description=(
             "Set of platforms to search. Currently only supports 'reddit', "
             "but designed for future expansion (e.g. 'twitter', 'stack_overflow')."
@@ -143,3 +141,15 @@ class CreateSearchAgentCommand(BaseModel):
         examples=[5]
     )
     recursion_limit: int = Field(default=25, description="Maximum recursion limit.", examples=[25, 50])
+    max_tokens: int = Field(
+        default=4000,
+        ge=1000,
+        description="Maximum tokens before message summarization kicks in",
+        examples=[4000, 6000, 8000]
+    )
+    max_summary_tokens: int = Field(
+        default=500,
+        ge=100,
+        description="Maximum tokens for each summary message",
+        examples=[500, 800, 1000]
+    )
