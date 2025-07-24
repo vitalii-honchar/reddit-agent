@@ -3,6 +3,8 @@ from sqlmodel import Session
 from typing import Annotated
 from fastapi import Depends
 
+from services import AgentConfigurationService
+
 ctx = create_app_context()
 
 def get_session():
@@ -11,7 +13,9 @@ def get_session():
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+AgentConfigurationServiceDep = Annotated[AgentConfigurationService, Depends(lambda: ctx.agent_configuration_service)]
 
 __all__ = [
     "SessionDep",
+    "AgentConfigurationServiceDep",
 ]

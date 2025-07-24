@@ -1,5 +1,7 @@
 from .agents import router as agents
+from .agent_configurations import router as agent_configurations
 
 __name__ = [
-    "agents"
+    "agents",
+    "agent_configurations",
 ]

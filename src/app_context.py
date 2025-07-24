@@ -7,6 +7,9 @@ import asyncpraw
 
 from ai.prompt.prompt_manager import PromptManager
 from ai.search_agent.tool.reddit.tools import RedditToolsService
+from models import AgentConfiguration
+from repositories import AgentConfigurationRepository, AgentExecutionRepository
+from services import AgentConfigurationService
 
 
 class AppSettings(BaseSettings):
@@ -40,6 +43,9 @@ class AppContext:
                 user_agent=settings.reddit_agent,
             )
         )
+        self.agent_configuration_repository = AgentConfigurationRepository()
+        self.agent_execution_repository = AgentExecutionRepository()
+        self.agent_configuration_service = AgentConfigurationService(self.agent_configuration_repository)
         self.db_engine = create_engine(settings.db_url, echo=settings.debug)
 
 def create_app_context() -> AppContext:
