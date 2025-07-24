@@ -104,3 +104,7 @@ This project uses `uv` for dependency management. The `uv.lock` file contains ex
 - Add dev dependencies: `uv add --dev <package>`
 - Remove dependencies: `uv remove <package>`
 - Update dependencies: `uv sync --upgrade`
+
+## Development Best Practices
+
+- Always generate new alembic migration and apply it after changes in SQL models

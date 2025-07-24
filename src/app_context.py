@@ -5,9 +5,8 @@ from pydantic_settings import BaseSettings
 from langchain_openai import ChatOpenAI
 import asyncpraw
 
-from ai.prompt.prompt_manager import PromptManager
+from ai.prompt import PromptManager
 from ai.search_agent.tool.reddit.tools import RedditToolsService
-from models import AgentConfiguration
 from repositories import AgentConfigurationRepository, AgentExecutionRepository
 from services import AgentConfigurationService
 
@@ -19,7 +18,7 @@ class AppSettings(BaseSettings):
     openai_api_key: str
     llm_model: str = 'gpt-4.1'
     llm_model_temperature: float = 0.1
-    prompts_folder: str
+    prompts_folder: str = 'prompts'
     db_url: str
     debug: bool = False
 
