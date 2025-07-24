@@ -20,4 +20,4 @@ class AgentConfigurationService:
         return self.repository.find_all(session)
 
     def get_by_id(self, session: Session, configuration_id: UUID) -> AgentConfiguration:
-        return
+        return self.repository.get_by_id(session, configuration_id)
