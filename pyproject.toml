@@ -22,6 +22,7 @@ dependencies = [
     "alembic>=1.16.4",
     "asyncpg>=0.30.0",
     "pydantic-settings>=2.10.1",
+    "sqlmodel>=0.0.24",
 ]
 
 [dependency-groups]

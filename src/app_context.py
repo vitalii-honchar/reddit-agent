@@ -1,3 +1,4 @@
+from sqlmodel import create_engine
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
@@ -16,6 +17,8 @@ class AppSettings(BaseSettings):
     llm_model: str = 'gpt-4.1'
     llm_model_temperature: float = 0.1
     prompts_folder: str
+    db_url: str
+    debug: bool = False
 
     class Config:
         env_file = ".env"
@@ -37,3 +40,7 @@ class AppContext:
                 user_agent=settings.reddit_agent,
             )
         )
+        self.db_engine = create_engine(settings.db_url, echo=settings.debug)
+
+def create_app_context() -> AppContext:
+    return AppContext(AppSettings())  # type: ignore
