@@ -8,7 +8,6 @@ from config import Config
 from prompt.prompt_manager import PromptManager
 from search_agent.models import CreateSearchAgentCommand, SearchResult
 from search_agent.tool import create_reddit_tools
-from search_agent.hooks import SummarizationHook
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,19 +17,11 @@ async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchRe
     prompt_manager = PromptManager(cfg.prompt_folder)
     search_agent_prompt = prompt_manager.load_prompt("search_agent", "system")
     
-    summarization_hook = SummarizationHook(
-        llm=cfg.llm,
-        prompt_manager=prompt_manager,
-        max_tokens=cmd.max_tokens,
-        max_summary_tokens=cmd.max_summary_tokens
-    ).create_hook()
-    
     agent = create_react_agent(
         model=cfg.llm,
         tools=_create_tools(cfg, cmd),
         response_format=SearchResult,
         prompt=search_agent_prompt.format(behavior=cmd.behavior, min_results=cmd.min_results),
-        pre_model_hook=summarization_hook,
     ).with_config(recursion_limit=cmd.recursion_limit)
 
     messages = [HumanMessage(cmd.search_query)]

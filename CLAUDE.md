@@ -4,39 +4,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Python-based Reddit agent project built with uv as the package manager. The project scans Reddit for business opportunities using PRAW (Python Reddit API Wrapper) and provides LangGraph-compatible tools for AI agents.
+This is a Python-based Reddit agent project built with uv as the package manager. The project scans Reddit for business opportunities using async PRAW (Python Reddit API Wrapper) and provides LangGraph-compatible tools for AI agents. It features intelligent conversation summarization, multi-strategy filtering, and structured response generation.
 
 ## Architecture
 
-- **Entry point**: `src/reddit_agent/main.py` - Demonstrates Reddit tool functionality
-- **Reddit Tool**: `src/reddit_agent/tool/reddit/` - Core Reddit scanning functionality
-  - `service.py` - Business logic for Reddit API interactions
-  - `tools.py` - LangGraph-compatible tool interfaces
-  - `models.py` - Pydantic models for data structures
-- **Package structure**: Standard Python package layout under `src/reddit_agent/`
-- **Dependencies**: Managed via `pyproject.toml` with uv as the package manager
+### Core Components
+- **Entry point**: `src/main.py` - Main application entry point
+- **Search Agent**: `src/search_agent/search_agent.py` - LangGraph agent orchestration with conversation summarization
+- **Reddit Tools**: `src/search_agent/tool/reddit/` - Async Reddit search implementation
+  - `tools.py` - LangGraph-compatible tool interfaces with filtering strategies
+  - `service.py` - Reddit API business logic
+  - `models.py` - Pydantic data models for submissions and search queries
+- **Hooks System**: `src/search_agent/hooks/` - Modular pre-processing hooks
+  - `summarization.py` - LLM-powered conversation summarization with failsafe
+- **Configuration**: `src/config/` - Centralized configuration management
+- **Prompts**: `prompts/` - Template-based prompt system for agent behavior
+
+### Key Architectural Patterns
+- **Strategy Pattern**: Multi-layer filtering system with `SubmissionFilterStrategy` implementations
+- **Dependency Injection**: LLM and configuration dependencies injected into hooks and services
+- **Async/Await**: Full async support throughout Reddit API interactions
+- **Structured Responses**: Pydantic models ensure type safety and validation
 
 ## Development Commands
 
 ```bash
-# Install dependencies and set up environment
+# Install dependencies
 uv sync
 
-# Run the application
-uv run python -m search_agent.main
+# Run the application  
+uv run python src/main.py
 
-# Alternative run method
-uv run python src/search_agent/main.py
+# Run tests
+uv run pytest
+
+# Run specific test
+uv run pytest tests/test_search_agent.py::TestSearchAgentIntegration::test_search_indie_project_marketing_opportunities -v
+
+# Run integration tests only
+uv run pytest -m integration
+
+# Code formatting and linting
+uv run ruff check .
+uv run ruff check --fix .
 ```
 
-## Reddit API Setup
+## Environment Setup
 
-Create a `.env` file in the project root with your Reddit API credentials:
+Create a `.env` file in the project root with these credentials:
 
 ```
 REDDIT_CLIENT_ID=your_client_id_here
 REDDIT_CLIENT_SECRET=your_client_secret_here
 REDDIT_USER_AGENT=reddit-agent:v0.1.0 (by /u/yourusername)
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 To get Reddit API credentials:
@@ -44,19 +65,30 @@ To get Reddit API credentials:
 2. Create a new application (choose "script" type)
 3. Use the client ID and secret in your .env file
 
-## Available Reddit Tools
+## Advanced Features
 
-The project provides 5 LangGraph-compatible tools:
-- `scan_hot_posts` - Find hot posts in any subreddit
-- `scan_rising_posts` - Find rising/trending posts
-- `get_community_metrics` - Get subreddit statistics
-- `analyze_post_comments` - Analyze comments on specific posts
-- `scan_opportunities` - Comprehensive subreddit analysis
+### Conversation Summarization
+- **Location**: `src/search_agent/hooks/summarization.py`
+- **Behavior**: Automatically summarizes conversations when token limits are exceeded
+- **Failsafe**: Returns original messages if LLM summarization fails (preserves data)
+- **Prompt**: `prompts/summarization/system.md`
+
+### Multi-Strategy Filtering
+- **Pattern**: Strategy pattern with `SubmissionFilterStrategy` base class
+- **Filters**: Score, age, content length, keywords, flairs, comments quality
+- **Configuration**: Comprehensive filtering options in `SearchQuery` model
+
+### Structured Data Models
+- **SearchResult**: Top-level response with findings and metadata
+- **Finding**: Individual insights with action items and relevance scoring
+- **RedditSubmission**: Structured post data with top comments
+- **SearchQuery**: Reddit search parameters with filtering configuration
 
 ## Package Management
 
 This project uses `uv` for dependency management. The `uv.lock` file contains exact dependency versions.
 
 - Add dependencies: `uv add <package>`
+- Add dev dependencies: `uv add --dev <package>`
 - Remove dependencies: `uv remove <package>`
 - Update dependencies: `uv sync --upgrade`
