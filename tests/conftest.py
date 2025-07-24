@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
 from config import Config
-from search_agent.tool.reddit.tools import RedditToolsService
+from ai.search_agent.tool.reddit import RedditToolsService
 
 
 @pytest_asyncio.fixture
@@ -60,7 +60,7 @@ def config() -> Config:
             api_key=api_key
         ),
         reddit_config=reddit_config,
-        prompt_folder=prompt_folder
+        prompts_folder=prompt_folder
     )
 
 @pytest_asyncio.fixture

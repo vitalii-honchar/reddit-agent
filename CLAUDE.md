@@ -35,6 +35,16 @@ uv sync
 # Run the application  
 uv run python src/main.py
 
+# Run the FastAPI server
+uv run python -m src.api.main
+
+# Start PostgreSQL database (using Docker Compose)
+docker-compose up -d db
+
+# Run database migrations (after creating your models)
+alembic revision --autogenerate -m "Create initial tables"
+alembic upgrade head
+
 # Run tests
 uv run pytest
 
@@ -58,6 +68,8 @@ REDDIT_CLIENT_ID=your_client_id_here
 REDDIT_CLIENT_SECRET=your_client_secret_here
 REDDIT_USER_AGENT=reddit-agent:v0.1.0 (by /u/yourusername)
 OPENAI_API_KEY=your_openai_api_key
+DATABASE_URL=postgresql://root:953810aa-684f-11f0-b390-5ee52574761b@localhost:5432/agentdb
+ASYNC_DATABASE_URL=postgresql+asyncpg://root:953810aa-684f-11f0-b390-5ee52574761b@localhost:5432/agentdb
 ```
 
 To get Reddit API credentials:

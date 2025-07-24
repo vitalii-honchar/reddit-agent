@@ -5,16 +5,16 @@ from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMe
 from langgraph.prebuilt import create_react_agent
 
 from config import Config
-from prompt.prompt_manager import PromptManager
-from search_agent.models import CreateSearchAgentCommand, SearchResult
-from search_agent.tool import create_reddit_tools
+from ai.prompt import PromptManager
+from ai.search_agent.models import CreateSearchAgentCommand, SearchResult
+from ai.search_agent.tool import create_reddit_tools
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:
-    prompt_manager = PromptManager(cfg.prompt_folder)
+    prompt_manager = PromptManager(cfg.prompts_folder)
     search_agent_prompt = prompt_manager.load_prompt("search_agent", "system")
     
     agent = create_react_agent(

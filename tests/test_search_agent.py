@@ -1,9 +1,9 @@
 """Integration test for search agent finding marketing opportunities for indie projects."""
 import pytest
 from config import Config
-from search_agent import SearchResult
-from search_agent.models import CreateSearchAgentCommand
-from search_agent.search_agent import execute_search
+from ai.search_agent import SearchResult
+from ai.search_agent.models import CreateSearchAgentCommand
+from ai.search_agent import execute_search
 
 
 class TestSearchAgentIntegration:
