@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 
-from models import AgentExecution
+from core.models import AgentExecution
 
 logger = logging.getLogger(__name__)
 

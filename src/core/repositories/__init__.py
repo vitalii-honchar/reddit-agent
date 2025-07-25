@@ -1,6 +1,6 @@
 from .agent import AgentConfigurationRepository, AgentExecutionRepository
 
-__name__ = [
+__all__ = [
     "AgentConfigurationRepository",
     "AgentExecutionRepository",
 ]

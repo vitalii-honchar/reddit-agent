@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 
 from sqlmodel import Session, select
 from sqlalchemy import and_, or_, func
-from models import AgentConfiguration, AgentExecution
+from core.models import AgentConfiguration, AgentExecution
 from typing import Sequence, Optional
 
 
@@ -82,7 +82,7 @@ class AgentExecutionRepository:
         Returns the updated execution if lock was acquired, None if another process got it first.
         Uses the executions counter as an optimistic lock.
         """
-        from models.agent import utcnow
+        from core.models.agent import utcnow
         
         # Try to increment executions counter atomically
         result = session.exec(

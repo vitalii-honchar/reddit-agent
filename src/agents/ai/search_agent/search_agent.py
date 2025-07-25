@@ -5,9 +5,9 @@ from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMe
 from langgraph.prebuilt import create_react_agent
 
 from config import Config
-from ai.prompt import PromptManager
-from ai.search_agent.models import CreateSearchAgentCommand, SearchResult
-from ai.search_agent.tool import create_reddit_tools
+from agents.ai.prompt import PromptManager
+from agents.ai.search_agent.models import CreateSearchAgentCommand, SearchResult
+from agents.ai.search_agent.tool import create_reddit_tools
 import logging
 
 logger = logging.getLogger(__name__)

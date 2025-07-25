@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 from sqlmodel import Session
 
-from models import AgentConfiguration, AgentExecution
-from repositories import AgentConfigurationRepository, AgentExecutionRepository
+from core.models import AgentConfiguration, AgentExecution
+from core.repositories import AgentConfigurationRepository, AgentExecutionRepository
 from typing import Sequence
 
-from schemas import AgentConfigurationCreate
+from agentapi.schemas import AgentConfigurationCreate
 from uuid import UUID
 
-from schemas.agent_execution import AgentExecutionCreate
+from agentapi.schemas.agent_execution import AgentExecutionCreate
 
 
 @dataclass

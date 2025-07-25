@@ -4,10 +4,10 @@ from typing import List
 
 from sqlmodel import Session
 
-from models.agent import AgentExecution, SchedulerConfig, utcnow
-from repositories.agent import AgentExecutionRepository  
-from services.agent import AgentExecutionService
-from services.agent_executor import AgentExecutor
+from core.models.agent import AgentExecution, SchedulerConfig, utcnow
+from core.repositories.agent import AgentExecutionRepository  
+from core.services.agent import AgentExecutionService
+from scheduler.services.agent_executor import AgentExecutor
 
 logger = logging.getLogger(__name__)
 

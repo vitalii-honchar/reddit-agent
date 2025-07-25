@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from uuid import UUID
-from schemas import AgentConfigurationCreate, AgentConfigurationRead
+from agentapi.schemas import AgentConfigurationCreate, AgentConfigurationRead
 from dependencies import SessionDep, AgentConfigurationServiceDep
 from typing import List
 

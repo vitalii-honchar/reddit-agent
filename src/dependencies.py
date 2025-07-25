@@ -3,7 +3,7 @@ from sqlmodel import Session
 from typing import Annotated
 from fastapi import Depends
 
-from services import AgentConfigurationService, AgentExecutionService
+from core.services import AgentConfigurationService, AgentExecutionService
 
 ctx = create_app_context()
 

@@ -1,10 +1,9 @@
-from .agent import AgentConfigurationService, AgentExecutionService
+"""Scheduler services package."""
+
 from .agent_executor import AgentExecutor
 from .scheduler import SchedulerService
 
 __all__ = [
-    "AgentConfigurationService",
-    "AgentExecutionService",
     "AgentExecutor",
     "SchedulerService",
 ]

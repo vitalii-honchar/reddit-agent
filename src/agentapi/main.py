@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-import routes
+from agentapi import routes
 
 app = FastAPI()
 app.include_router(routes.agents)

@@ -1,0 +1,1 @@
+"""Core package containing shared models, repositories, and services."""

@@ -5,10 +5,10 @@ from pydantic_settings import BaseSettings
 from langchain_openai import ChatOpenAI
 import asyncpraw
 
-from ai.prompt import PromptManager
-from ai.search_agent.tool.reddit.tools import RedditToolsService
-from repositories import AgentConfigurationRepository, AgentExecutionRepository
-from services import AgentConfigurationService, AgentExecutionService
+from agents.ai.prompt import PromptManager
+from agents.ai.search_agent.tool.reddit.tools import RedditToolsService
+from core.repositories import AgentConfigurationRepository, AgentExecutionRepository
+from core.services import AgentConfigurationService, AgentExecutionService
 
 
 class AppSettings(BaseSettings):
