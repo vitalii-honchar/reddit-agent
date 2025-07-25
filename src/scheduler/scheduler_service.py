@@ -24,7 +24,11 @@ class SchedulerService:
     repository: AgentExecutionRepository
     service: AgentExecutionService
     executor: AgentExecutor
-    config: SchedulerConfig = SchedulerConfig()
+    config: SchedulerConfig = None  # type: ignore
+    
+    def __post_init__(self):
+        if self.config is None:
+            self.config = SchedulerConfig()
     
     async def process_pending_executions(self, session: Session) -> int:
         """

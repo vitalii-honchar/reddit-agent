@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 
 from sqlmodel import Session
 
-from config.database import engine
+from app_context import create_app_context
 from models.agent import SchedulerConfig
 from repositories.agent import AgentExecutionRepository
 from services.agent import AgentExecutionService
@@ -33,9 +33,10 @@ class SchedulerManager:
         self.shutdown_event = asyncio.Event()
         self.config = SchedulerConfig()
         
-        # Initialize dependencies
-        self.repository = AgentExecutionRepository()
-        self.service = AgentExecutionService(repository=self.repository)
+        # Initialize app context and dependencies
+        self.app_context = create_app_context()
+        self.repository = self.app_context.agent_execution_repository
+        self.service = self.app_context.agent_execution_service
         self.executor = AgentExecutor()
         self.scheduler_service = SchedulerService(
             repository=self.repository,
@@ -56,7 +57,7 @@ class SchedulerManager:
     @asynccontextmanager
     async def get_session(self) -> AsyncGenerator[Session, None]:
         """Get database session with proper cleanup."""
-        session = Session(engine)
+        session = Session(self.app_context.db_engine)
         try:
             yield session
         finally:
