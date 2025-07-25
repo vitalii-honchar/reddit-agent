@@ -29,3 +29,11 @@ class AgentExecutionRepository:
         session.commit()
         session.refresh(agent_execution)
         return agent_execution
+
+    def find_all(self, session: Session) -> Sequence[AgentExecution]:
+        return session.exec(select(AgentExecution)).all()
+
+    def get_by_id(self, session: Session, execution_id: UUID) -> AgentExecution:
+        return session.exec(
+            select(AgentExecution).where(AgentExecution.id == execution_id)  # type: ignore
+        ).one()

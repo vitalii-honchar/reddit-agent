@@ -3,7 +3,7 @@ from sqlalchemy import Column, DateTime, func, ForeignKey, Enum
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, INTEGER as PG_INTEGER, JSONB
 from uuid import uuid4, UUID
 from datetime import datetime, timezone
-from typing import Dict, Any, Literal, get_args
+from typing import Dict, Any, Literal, get_args, Optional
 
 AgentType = Literal["search_agent"]
 
@@ -40,7 +40,7 @@ class AgentExecution(SQLModel, table=True):
         default_factory=uuid4,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
     )
-    executions: int = Field(sa_column=Column(PG_INTEGER, nullable=False, default=0))
+    executions: int = Field(default=0, sa_column=Column(PG_INTEGER, nullable=False, default=0))
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
         sa_column=Column(DateTime(timezone=False), server_default=func.now(), nullable=False)
@@ -50,4 +50,10 @@ class AgentExecution(SQLModel, table=True):
         sa_column=Column(DateTime(timezone=False), server_default=func.now(), onupdate=func.now(), nullable=False)
     )
     config_id: UUID = Field(sa_column=Column(PG_UUID(as_uuid=True), ForeignKey("agent_configuration.id")))
+    success_result: Dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
+    error_result: Dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
     config: AgentConfiguration = Relationship()
