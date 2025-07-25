@@ -11,8 +11,8 @@ from app_context import create_app_context
 from models.agent import SchedulerConfig
 from repositories.agent import AgentExecutionRepository
 from services.agent import AgentExecutionService
-from scheduler.agent_executor import AgentExecutor
-from scheduler.scheduler_service import SchedulerService
+from services.agent_executor import AgentExecutor
+from services.scheduler import SchedulerService
 
 # Configure logging
 logging.basicConfig(

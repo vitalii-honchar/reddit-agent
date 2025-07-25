@@ -7,7 +7,7 @@ from sqlmodel import Session
 from models.agent import AgentExecution, SchedulerConfig, utcnow
 from repositories.agent import AgentExecutionRepository  
 from services.agent import AgentExecutionService
-from scheduler.agent_executor import AgentExecutor
+from services.agent_executor import AgentExecutor
 
 logger = logging.getLogger(__name__)
 
