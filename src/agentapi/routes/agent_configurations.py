@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from uuid import UUID
 from agentapi.schemas import AgentConfigurationCreate, AgentConfigurationRead
-from dependencies import SessionDep, AgentConfigurationServiceDep
+from agentapi.dependencies import SessionDep, AgentConfigurationServiceDep
 from typing import List
 
 router = APIRouter(prefix="/agent-configurations", tags=["agent-configurations"])

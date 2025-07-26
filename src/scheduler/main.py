@@ -7,10 +7,8 @@ from typing import AsyncGenerator
 
 from sqlmodel import Session
 
-from app_context import create_app_context
+from agentapi.app_context import create_app_context
 from core.models.agent import SchedulerConfig
-from core.repositories.agent import AgentExecutionRepository
-from core.services.agent import AgentExecutionService
 from scheduler.services.agent_executor import AgentExecutor
 from scheduler.services.scheduler import SchedulerService
 

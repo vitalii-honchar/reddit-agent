@@ -8,7 +8,7 @@ import pytest_asyncio
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-from config import Config
+from agents.config import Config
 from ai.search_agent.tool.reddit import RedditToolsService
 
 
@@ -25,7 +25,7 @@ async def reddit_client(config: Config) -> AsyncGenerator[asyncpraw.Reddit, None
 @pytest.fixture
 def config() -> Config:
     """Create config with Reddit and LLM setup."""
-    from config.config import RedditConfig
+    from agents.config import RedditConfig
     
     # Load environment variables for Reddit config
     project_root = Path(__file__).parent.parent

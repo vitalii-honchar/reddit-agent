@@ -6,12 +6,6 @@ from typing import Dict, Any
 from core.models import AgentType
 
 
-class Agent(BaseModel):
-    id: UUID = Field(description="Agent ID")
-    name: str = Field(description="Agent name")
-    description: str = Field(description="Agent description")
-
-
 class AgentConfigurationCreate(BaseModel):
     agent_type: AgentType = Field(description="Agent type")
     data: Dict[str, Any] = Field(description="Agent configuration data")

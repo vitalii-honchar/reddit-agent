@@ -4,10 +4,10 @@ import asyncpraw
 from langchain_core.messages import HumanMessage, BaseMessage, ToolMessage, AIMessage
 from langgraph.prebuilt import create_react_agent
 
-from config import Config
-from agents.ai.prompt import PromptManager
-from agents.ai.search_agent.models import CreateSearchAgentCommand, SearchResult
-from agents.ai.search_agent.tool import create_reddit_tools
+from agents.config import Config
+from agents.prompt import PromptManager
+from agents.search_agent.models import CreateSearchAgentCommand, SearchResult
+from agents.search_agent.tool import create_reddit_tools
 import logging
 
 logger = logging.getLogger(__name__)

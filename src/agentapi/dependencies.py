@@ -1,4 +1,4 @@
-from app_context import create_app_context
+from agentapi.app_context import create_app_context
 from sqlmodel import Session
 from typing import Annotated
 from fastapi import Depends

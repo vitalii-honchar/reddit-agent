@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from uuid import UUID
-from schemas import AgentExecutionCreate, AgentExecutionRead
-from dependencies import SessionDep, AgentExecutionServiceDep
+from agentapi.schemas import AgentExecutionCreate, AgentExecutionRead
+from agentapi.dependencies import SessionDep, AgentExecutionServiceDep
 
 router = APIRouter(prefix="/agent-executions", tags=["agent-executions"])
 

@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings
 from langchain_openai import ChatOpenAI
 import asyncpraw
 
-from agents.ai.prompt import PromptManager
-from agents.ai.search_agent.tool.reddit.tools import RedditToolsService
+from agents.prompt import PromptManager
+from agents.search_agent.tool.reddit.tools import RedditToolsService
 from core.repositories import AgentConfigurationRepository, AgentExecutionRepository
 from core.services import AgentConfigurationService, AgentExecutionService
 
