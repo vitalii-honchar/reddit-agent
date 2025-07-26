@@ -1,10 +1,11 @@
+from datetime import timedelta
+from typing import Sequence
 from uuid import UUID
-from datetime import datetime, timezone, timedelta
 
-from sqlmodel import Session, select
-from sqlalchemy import and_, or_, func
-from core.models import AgentConfiguration, AgentExecution
-from typing import Sequence, Optional
+from sqlalchemy import and_, or_
+from sqlmodel import Session, select, update
+
+from core.models import AgentConfiguration, AgentExecution, utcnow
 
 
 class AgentConfigurationRepository:
@@ -47,21 +48,12 @@ class AgentExecutionRepository:
         session.refresh(agent_execution)
         return agent_execution
 
-    def find_pending(self, session: Session, limit: int = 100, cooldown_seconds: int = 600) -> Sequence[AgentExecution]:
-        """
-        Find pending executions ready for processing.
-        
-        Returns executions where:
-        - state = 'pending' AND 
-        - (executions = 0 OR updated_at < NOW() - cooldown_seconds)
-        
-        Ordered by updated_at ASC for FIFO processing.
-        """
-        now = datetime.now(timezone.utc).replace(tzinfo=None)
-        cooldown_threshold = now - timedelta(seconds=cooldown_seconds)
+    def find_pending(self, session: Session, threshold: float, limit: int) -> Sequence[AgentExecution]:
+        now = utcnow()
+        cooldown_threshold = now - timedelta(seconds=threshold)
         
         return session.exec(
-            select(AgentExecution)
+            select(AgentExecution) # type: ignore
             .where(
                 and_(
                     AgentExecution.state == "pending",
@@ -71,38 +63,23 @@ class AgentExecutionRepository:
                     )
                 )
             )
-            .order_by(AgentExecution.updated_at.asc())  # type: ignore
+            .order_by(AgentExecution.updated_at.asc()) # type: ignore
             .limit(limit)
         ).all()
 
-    def try_acquire_lock(self, session: Session, execution_id: UUID, current_executions: int) -> Optional[AgentExecution]:
-        """
-        Try to acquire optimistic lock on an execution record.
-        
-        Returns the updated execution if lock was acquired, None if another process got it first.
-        Uses the executions counter as an optimistic lock.
-        """
-        from core.models.agent import utcnow
-        
-        # Try to increment executions counter atomically
-        result = session.exec(
-            select(AgentExecution)
-            .where(
-                and_(
-                    AgentExecution.id == execution_id,
-                    AgentExecution.executions == current_executions
-                )
+    def acquire_lock(self, session: Session, execution: AgentExecution) -> AgentExecution | None:
+        with session.connection(execution_options={"isolation_level": "AUTOCOMMIT"}) as connection:
+            res = connection.execute(
+                update(AgentExecution).where(  # type: ignore
+                    and_(
+                        AgentExecution.id == execution.id,
+                        AgentExecution.executions == execution.executions
+                    )
+                ).values(executions=execution.executions + 1)
             )
-        ).first()
-        
-        if result is None:
-            # Lock was already acquired by another process
-            return None
-            
-        # Update the execution counter and timestamp
-        result.executions = current_executions + 1
-        result.updated_at = utcnow()
-        session.commit()
-        session.refresh(result)
-        
-        return result
+
+            if res.rowcount() > 0:
+                session.refresh(execution)
+                return execution
+
+        return None

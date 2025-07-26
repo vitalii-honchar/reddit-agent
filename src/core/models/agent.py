@@ -7,8 +7,10 @@ from typing import Dict, Any, Literal, get_args, Optional
 
 AgentType = Literal["search_agent"]
 
+
 def utcnow() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
+
 
 class AgentConfiguration(SQLModel, table=True):
     __tablename__ = "agent_configuration"
@@ -33,12 +35,19 @@ class AgentConfiguration(SQLModel, table=True):
     )
 
 
+AgentExecutionState = Literal["pending", "completed", "failed"]
+
 class AgentExecution(SQLModel, table=True):
     __tablename__ = "agent_execution"
 
     id: UUID = Field(
         default_factory=uuid4,
         sa_column=Column(PG_UUID(as_uuid=True), primary_key=True),
+    )
+    state: AgentExecutionState = Field(
+        default="pending",
+        sa_column=Column(Enum(*get_args(AgentExecutionState), name="agent_execution_state"), nullable=False,
+                         default="pending")
     )
     executions: int = Field(default=0, sa_column=Column(PG_INTEGER, nullable=False, default=0))
     created_at: datetime = Field(

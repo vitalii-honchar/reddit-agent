@@ -36,3 +36,12 @@ class AgentExecutionService:
 
     def get_by_id(self, session: Session, configuration_id: UUID) -> AgentExecution:
         return self.repository.get_by_id(session, configuration_id)
+
+    def find_pending(self, session: Session, threshold: float, limit: int = 100) -> Sequence[AgentExecution]:
+        return self.repository.find_pending(session, threshold, limit)
+
+    def acquire_lock(self, session: Session, execution: AgentExecution) -> AgentExecution | None:
+        return self.repository.acquire_lock(session, execution)
+
+    def update(self, session: Session, execution: AgentExecution) -> AgentExecution:
+        return self.repository.update(session, execution)

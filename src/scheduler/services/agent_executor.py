@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 
 from core.models import AgentExecution
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class AgentExecutor:
     For now, it only logs the execution attempt.
     """
     
-    async def execute(self, agent_execution: AgentExecution) -> None:
+    async def execute(self, agent_execution: AgentExecution) -> dict[str, Any]:
         """
         Execute an agent based on its configuration.
         
@@ -26,7 +27,7 @@ class AgentExecutor:
             f"executing agent {agent_execution.id} (type: {agent_execution.config.agent_type}, "
             f"execution #{agent_execution.executions})"
         )
-        
+        return {}
         # TODO: Implement actual agent execution logic
         # This will include:
         # 1. Loading the appropriate agent based on agent_type
