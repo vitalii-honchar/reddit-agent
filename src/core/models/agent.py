@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, DateTime, func, ForeignKey, Enum
+from sqlalchemy import Column, DateTime, func, ForeignKey, Enum, Index
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, INTEGER as PG_INTEGER, JSONB
 from uuid import uuid4, UUID
 from datetime import datetime, timezone
@@ -37,8 +37,13 @@ class AgentConfiguration(SQLModel, table=True):
 
 AgentExecutionState = Literal["pending", "completed", "failed"]
 
+
 class AgentExecution(SQLModel, table=True):
     __tablename__ = "agent_execution"
+    __table_args__ = (
+        Index("ix_agent_execution_pending_updated_at", "updated_at",
+              postgresql_where=Column("state") == "pending"),
+    )
 
     id: UUID = Field(
         default_factory=uuid4,
