@@ -6,13 +6,12 @@ from sqlmodel import Session
 from core.models.agent import AgentConfiguration, AgentExecution
 
 
-
-class TestAgentExecutionAPI:
+class TestAgentExecutionApiE2E:
     """Test agent execution endpoints."""
 
     def test_create_execution_success(self, client: TestClient, session: Session):
         """Test creating agent execution - happy flow."""
-        # Arrange - create configuration first
+        # given
         config = AgentConfiguration(
             agent_type="search_agent",
             data={"search_query": "test"}
@@ -27,15 +26,15 @@ class TestAgentExecutionAPI:
             "config_id": str(config.id)
         }
 
-        # Act
+        # when
         response = client.post("/agent-executions/", json=execution_data)
 
-        # Assert HTTP response
+        # then
         assert response.status_code == 200
         returned_id = response.json()
         assert returned_id == str(execution_id)
 
-        # Assert database changes
+        # and
         db_execution = session.get(AgentExecution, execution_id)
         assert db_execution is not None
         assert db_execution.config_id == config.id
@@ -48,7 +47,7 @@ class TestAgentExecutionAPI:
 
     def test_get_execution_success(self, client: TestClient, session: Session):
         """Test getting agent execution by ID - happy flow."""
-        # Arrange - create configuration and execution in database
+        # given
         config = AgentConfiguration(
             agent_type="search_agent",
             data={"search_query": "test"}
@@ -67,10 +66,10 @@ class TestAgentExecutionAPI:
         session.commit()
         session.refresh(execution)
 
-        # Act
+        # when
         response = client.get(f"/agent-executions/{execution.id}")
 
-        # Assert HTTP response
+        # then
         assert response.status_code == 200
         response_data = response.json()
         assert response_data["id"] == str(execution.id)
@@ -83,9 +82,9 @@ class TestAgentExecutionAPI:
 
     def test_create_execution_with_existing_config_success(self, client: TestClient, session: Session):
         """Test creating execution with valid config reference - happy flow."""
-        # Arrange
+        # given
         config = AgentConfiguration(
-            agent_type="search_agent", 
+            agent_type="search_agent",
             data={"filters": ["hot", "rising"]}
         )
         session.add(config)
@@ -98,18 +97,18 @@ class TestAgentExecutionAPI:
             "config_id": str(config.id)
         }
 
-        # Act
+        # when
         response = client.post("/agent-executions/", json=execution_data)
 
-        # Assert HTTP response
+        # then
         assert response.status_code == 200
 
-        # Assert database relationship integrity
+        # and
         db_execution = session.get(AgentExecution, execution_id)
         assert db_execution is not None
         assert db_execution.config_id == config.id
-        
-        # Verify the configuration still exists and is linked
+
+        # and
         db_config = session.get(AgentConfiguration, config.id)
         assert db_config is not None
         assert db_config.id == db_execution.config_id
