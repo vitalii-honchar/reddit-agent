@@ -48,12 +48,12 @@ class AgentExecutionRepository:
         session.refresh(agent_execution)
         return agent_execution
 
-    def find_pending(self, session: Session, threshold: float, limit: int) -> Sequence[AgentExecution]:
+    def find_pending(self, session: Session, threshold: float, limit: int = 100) -> Sequence[AgentExecution]:
         now = utcnow()
         cooldown_threshold = now - timedelta(seconds=threshold)
-        
+
         return session.exec(
-            select(AgentExecution) # type: ignore
+            select(AgentExecution)  # type: ignore
             .where(
                 and_(
                     AgentExecution.state == "pending",
@@ -63,7 +63,7 @@ class AgentExecutionRepository:
                     )
                 )
             )
-            .order_by(AgentExecution.updated_at.asc()) # type: ignore
+            .order_by(AgentExecution.updated_at.asc())  # type: ignore
             .limit(limit)
         ).all()
 
@@ -78,7 +78,7 @@ class AgentExecutionRepository:
                 ).values(executions=execution.executions + 1)
             )
 
-            if res.rowcount() > 0:
+            if res.rowcount > 0: # type: ignore
                 session.refresh(execution)
                 return execution
 

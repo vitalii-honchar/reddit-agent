@@ -107,4 +107,17 @@ This project uses `uv` for dependency management. The `uv.lock` file contains ex
 
 ## Development Best Practices
 
+### Test Structure
+- All tests must follow the **Given-When-Then** pattern with clear comments:
+  - `# given` - Setup test data and preconditions
+  - `# when` - Execute the action being tested  
+  - `# then` - Verify the expected outcome
+  - `# and` - Additional assertions (optional)
+
+### Database Management
 - Always generate new alembic migration and apply it after changes in SQL models
+
+## Testing Practices
+- **Database Testing Strategy**:
+  - In test scenarios, do not mock the database
+  - Use the same approach of database connection creation in a fixture like in `@tests/agentapi/conftest.py`
