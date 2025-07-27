@@ -68,18 +68,19 @@ class AgentExecutionRepository:
         ).all()
 
     def acquire_lock(self, session: Session, execution: AgentExecution) -> AgentExecution | None:
-        with session.connection(execution_options={"isolation_level": "AUTOCOMMIT"}) as connection:
-            res = connection.execute(
-                update(AgentExecution).where(  # type: ignore
-                    and_(
-                        AgentExecution.id == execution.id,
-                        AgentExecution.executions == execution.executions
-                    )
-                ).values(executions=execution.executions + 1)
-            )
+        with Session(session.get_bind()) as lock_session:
+            with lock_session.connection(execution_options={"isolation_level": "AUTOCOMMIT"}) as connection:
+                res = connection.execute(
+                    update(AgentExecution).where(  # type: ignore
+                        and_(
+                            AgentExecution.id == execution.id,
+                            AgentExecution.executions == execution.executions
+                        )
+                    ).values(executions=execution.executions + 1)
+                )
 
-            if res.rowcount > 0: # type: ignore
-                session.refresh(execution)
-                return execution
+                if res.rowcount > 0: # type: ignore
+                    session.refresh(execution)
+                    return execution
 
         return None

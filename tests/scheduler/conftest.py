@@ -1,14 +1,56 @@
+import asyncio
 from typing import Generator
 
 import pytest
+import pytest_asyncio
 from sqlmodel import Session
 
 from core.models import AgentConfiguration
-from scheduler.main import app_context
+from scheduler.main import SchedulerManager
+from scheduler.scheduler_app_context import SchedulerAppContext
+from scheduler.settings import SchedulerSettings
+
+
+@pytest.fixture(scope="session")
+def settings() -> SchedulerSettings:
+    return SchedulerSettings(
+        threshold_seconds=1,
+    )  # type: ignore
+
+
+@pytest.fixture(scope="session")
+def app_context(settings: SchedulerSettings) -> SchedulerAppContext:
+    return SchedulerAppContext(settings)
+
+
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def setup_test_environment(app_context: SchedulerAppContext, settings: SchedulerSettings):
+    """Automatically setup/teardown scheduler for entire test session."""
+    # Setup - start scheduler in background
+    scheduler_manager = SchedulerManager(
+        settings.poll_interval_seconds,
+        app_context.scheduler_service,
+        app_context.db_engine,
+    )
+    scheduler_task = asyncio.create_task(scheduler_manager.start())
+    await asyncio.sleep(0.1)  # Give scheduler time to start
+
+    yield  # Run all tests
+
+    # Teardown - stop scheduler gracefully
+    scheduler_manager.shutdown_event.set()
+    try:
+        await asyncio.wait_for(scheduler_task, timeout=5.0)
+    except asyncio.TimeoutError:
+        scheduler_task.cancel()
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
 
 
 @pytest.fixture
-def session() -> Generator[Session, None, None]:
+def session(app_context: SchedulerAppContext) -> Generator[Session, None, None]:
     """Database session fixture using the same Postgres database as agentapi tests."""
     with Session(app_context.db_engine) as session:
         yield session

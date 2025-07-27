@@ -56,7 +56,7 @@ class SchedulerService:
             await self._mark_as_completed(session, locked_execution, execution_res)
             logger.info(f"Successfully executed agent {locked_execution.id}")
         except Exception as e:
-            logger.error(f"Execution {locked_execution.id} failed: {e}")
+            logger.exception(f"Execution {locked_execution.id} failed")
 
             locked_execution.error_result = {"error": str(e)}
             self.execution_service.update(session, execution)
