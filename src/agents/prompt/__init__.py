@@ -1,5 +1,5 @@
 from .prompt_manager import PromptManager
 
-__name__ = [
+__all__ = [
     "PromptManager",
 ]
