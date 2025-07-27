@@ -3,7 +3,7 @@ from sqlalchemy import Column, DateTime, func, ForeignKey, Enum, Index
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, INTEGER as PG_INTEGER, JSONB
 from uuid import uuid4, UUID
 from datetime import datetime, timezone
-from typing import Dict, Any, Literal, get_args, Optional
+from typing import Dict, Any, Literal, get_args
 
 AgentType = Literal["search_agent"]
 
