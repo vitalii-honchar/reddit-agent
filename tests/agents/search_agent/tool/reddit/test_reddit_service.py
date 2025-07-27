@@ -5,7 +5,7 @@ from ai.search_agent.tool.reddit.models import SearchQuery, SubmissionFilter
 from ai.search_agent.tool.reddit import RedditToolsService
 
 
-class TestRedditSearchIntegration:
+class TestRedditService:
     """Integration tests for Reddit search functionality."""
 
     @pytest.mark.asyncio
