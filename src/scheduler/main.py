@@ -78,21 +78,17 @@ class SchedulerManager:
             logger.info("Scheduler shutdown complete")
 
 
-async def main():
-    """Main entry point for the scheduler."""
-    settings = SchedulerSettings()  # type: ignore
-    app_context = SchedulerAppContext(settings)
-    scheduler_manager = SchedulerManager(
-        settings.poll_interval_seconds,
-        app_context.scheduler_service,
-        app_context.db_engine,
-    )
-    await scheduler_manager.start()
-
+settings = SchedulerSettings()  # type: ignore
+app_context = SchedulerAppContext(settings)
+scheduler_manager = SchedulerManager(
+    settings.poll_interval_seconds,
+    app_context.scheduler_service,
+    app_context.db_engine,
+)
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        asyncio.run(scheduler_manager.start())
     except KeyboardInterrupt:
         logger.info("Scheduler interrupted by user")
         sys.exit(0)
