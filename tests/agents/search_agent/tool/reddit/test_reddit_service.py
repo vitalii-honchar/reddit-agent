@@ -1,8 +1,9 @@
 """Integration test for Reddit search tool using async"""
 import pytest
 
-from ai.search_agent.tool.reddit.models import SearchQuery, SubmissionFilter
-from ai.search_agent.tool.reddit import RedditToolsService
+from agents.search_agent.tool.reddit import SearchQuery
+from agents.search_agent.tool.reddit.models import SubmissionFilter
+from agents.search_agent.tool.reddit.tools import RedditToolsService
 
 
 class TestRedditService:
