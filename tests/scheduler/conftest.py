@@ -1,14 +1,28 @@
-import asyncio
+import os
+import subprocess
+import threading
+import time
 from typing import Generator
 
 import pytest
-import pytest_asyncio
 from sqlmodel import Session
 
 from core.models import AgentConfiguration
-from scheduler.main import SchedulerManager
 from scheduler.scheduler_app_context import SchedulerAppContext
 from scheduler.settings import SchedulerSettings
+
+
+def stream_output(proc, prefix="SCHEDULER"):
+    """Stream subprocess output in real-time"""
+
+    def reader():
+        for line in iter(proc.stdout.readline, ''):
+            if line:
+                print(f"[{prefix}] {line.rstrip()}")
+
+    thread = threading.Thread(target=reader, daemon=True)
+    thread.start()
+    return thread
 
 
 @pytest.fixture(scope="session")
@@ -23,30 +37,42 @@ def app_context(settings: SchedulerSettings) -> SchedulerAppContext:
     return SchedulerAppContext(settings)
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_test_environment(app_context: SchedulerAppContext, settings: SchedulerSettings):
-    """Automatically setup/teardown scheduler for entire test session."""
-    # Setup - start scheduler in background
-    scheduler_manager = SchedulerManager(
-        settings.poll_interval_seconds,
-        app_context.scheduler_service,
-        app_context.db_engine,
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_environment():
+    """Launch scheduler with real-time log streaming"""
+
+    print("Starting scheduler subprocess...")
+
+    proc = subprocess.Popen(
+        ["python", "-m", "scheduler.main"],
+        cwd=os.getcwd(),
+        env=os.environ.copy(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        bufsize=1
     )
-    scheduler_task = asyncio.create_task(scheduler_manager.start())
-    await asyncio.sleep(0.1)  # Give scheduler time to start
+    stream_output(proc)
 
-    yield  # Run all tests
+    # Check if still alive
+    if proc.poll() is not None:
+        time.sleep(1)  # Let log thread catch up
+        raise RuntimeError(f"Scheduler died with exit code: {proc.returncode}")
 
-    # Teardown - stop scheduler gracefully
-    scheduler_manager.shutdown_event.set()
+    print("Scheduler is running and streaming logs...")
+
+    yield
+
+    print("Terminating scheduler...")
+    proc.terminate()
+
     try:
-        await asyncio.wait_for(scheduler_task, timeout=5.0)
-    except asyncio.TimeoutError:
-        scheduler_task.cancel()
-        try:
-            await scheduler_task
-        except asyncio.CancelledError:
-            pass
+        proc.wait(timeout=5)
+        print("Scheduler terminated gracefully")
+    except subprocess.TimeoutExpired:
+        print("Force killing scheduler...")
+        proc.kill()
+        proc.wait()
 
 
 @pytest.fixture

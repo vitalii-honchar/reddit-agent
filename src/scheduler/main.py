@@ -53,17 +53,14 @@ class SchedulerManager:
 
     async def run_scheduler_loop(self):
         logger.info(f"Starting scheduler with poll_interval = {self.poll_interval_seconds} s")
-
-        while True: #not self.shutdown_event.is_set():
-            # try:
-            #     print("Before action")
-            #     async with self.get_session() as session:
-            #         print("Execute action")
-            #         # await self.scheduler_service.process_pending_executions(session)
-            # except Exception:
-            #     logger.exception(f"Unexpected error")
-            print("Execute action")
-            await asyncio.sleep(1)
+        while not self.shutdown_event.is_set():
+            try:
+                print("Before action")
+                async with self.get_session() as session:
+                    await self.scheduler_service.process_pending_executions(session)
+            except Exception:
+                logger.exception(f"Unexpected error")
+            await asyncio.sleep(self.poll_interval_seconds)
 
         logger.info("Scheduler loop stopped")
 
