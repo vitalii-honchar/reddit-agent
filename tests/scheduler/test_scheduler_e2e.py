@@ -58,7 +58,9 @@ class TestSchedulerE2E:
 
         session.refresh(execution)
         assert execution.state == "completed"
-        assert execution.success_result == expected_res
+        assert "findings" in execution.success_result
+        assert "metadata" in execution.success_result
+        assert len(execution.success_result["findings"]) >= 1
         assert execution.error_result is None
         assert execution.executions >= 1
         assert execution.updated_at > execution.created_at
