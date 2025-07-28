@@ -2,8 +2,8 @@
 set -e
 
 if [ "$MODE" = "api" ]; then
-    echo "Starting FastAPI server with gunicorn (4 workers)..."
-    exec gunicorn src/agentapi/main:app --bind 0.0.0.0:8000 --workers 4 --worker-class uvicorn.workers.UvicornWorker
+    echo "Starting FastAPI server..."
+    exec fastapi run src/agentapi/main.py --port 8000 --host 0.0.0.0
 elif [ "$MODE" = "scheduler" ]; then
     echo "Starting scheduler..."
     exec python src/scheduler/main.py

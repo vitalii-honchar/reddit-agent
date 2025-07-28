@@ -15,7 +15,6 @@ dependencies = [
     "pytest-asyncio>=1.1.0",
     "ruff>=0.12.4",
     "asyncpraw>=7.8.1",
-    "fastapi>=0.116.1",
     "uvicorn>=0.35.0",
     "sqlalchemy>=2.0.41",
     "psycopg2-binary>=2.9.10",
@@ -23,7 +22,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "pydantic-settings>=2.10.1",
     "sqlmodel>=0.0.24",
-    "gunicorn>=23.0.0",
+    "fastapi[standard]>=0.116.1",
 ]
 
 [dependency-groups]
