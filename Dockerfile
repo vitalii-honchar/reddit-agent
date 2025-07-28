@@ -22,6 +22,9 @@ FROM --platform=${ARCH} python:3.13-alpine AS runtime
 # Re-declare ARG for runtime stage
 ARG ARCH=
 
+# Install runtime dependencies for compiled packages
+RUN apk add --no-cache libgcc
+
 # Set working directory
 WORKDIR /app
 
