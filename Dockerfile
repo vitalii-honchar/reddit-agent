@@ -2,6 +2,9 @@
 ARG ARCH=
 FROM --platform=${ARCH} python:3.13-alpine AS builder
 
+# Install build dependencies for Rust-based packages
+RUN apk add --no-cache gcc musl-dev rust cargo
+
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
@@ -12,7 +15,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies
-RUN uv sync --frozen --no-cache
+RUN uv sync --frozen --no-dev
 
 FROM --platform=${ARCH} python:3.13-alpine AS runtime
 
