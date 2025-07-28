@@ -8,7 +8,7 @@ class SchedulerAppContext:
 
     def __init__(self, settings: SchedulerSettings):
         self.settings = settings
-        self.agent_executor = AgentExecutor()
+        self.agent_executor = AgentExecutor(self.settings)
         self.agent_execution_repository = AgentExecutionRepository()
         self.agent_configuration_repository = AgentConfigurationRepository()
         self.agent_execution_service = AgentExecutionService(self.agent_execution_repository)

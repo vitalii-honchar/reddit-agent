@@ -102,7 +102,7 @@ def agent_configuration(session: Session) -> AgentConfiguration:
                 - Exclude generic marketing advice not SaaS-specific
                 - Look for posts with concrete metrics and outcomes""",
             "search_query": "SaaS product launch strategies customer acquisition growth",
-            "search_types": "reddit",
+            "search_types": ["reddit"],
         }
     )
     session.add(agent_configuration)

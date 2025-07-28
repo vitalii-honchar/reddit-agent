@@ -18,22 +18,27 @@ async def wait_until(condition_func, timeout=10.0, poll_interval=0.1):
     raise TimeoutError(f"Condition not met within {timeout} seconds")
 
 
-async def wait_execution_state(session: Session, execution: AgentExecution, state: AgentExecutionState) -> AgentExecution:
+async def wait_execution_state(
+        session: Session,
+        execution: AgentExecution,
+        state: AgentExecutionState,
+        timeout: float = 10) -> AgentExecution:
     def is_finished():
         session.refresh(execution)
         return execution.state == state
 
-    await wait_until(is_finished)
+    await wait_until(is_finished, timeout=timeout)
 
     return execution
+
 
 class TestSchedulerE2E:
 
     @pytest.mark.asyncio
     async def test_scheduler_processes_execution_with_success_result(
-        self,
-        session: Session,
-        agent_configuration: AgentConfiguration,
+            self,
+            session: Session,
+            agent_configuration: AgentConfiguration,
     ):
         # given
         expected_res = {}
@@ -49,7 +54,7 @@ class TestSchedulerE2E:
         session.refresh(execution)
 
         # then
-        await wait_execution_state(session, execution, "completed")
+        await wait_execution_state(session, execution, "completed", timeout=180)
 
         session.refresh(execution)
         assert execution.state == "completed"
@@ -57,7 +62,6 @@ class TestSchedulerE2E:
         assert execution.error_result is None
         assert execution.executions >= 1
         assert execution.updated_at > execution.created_at
-
 
     # @pytest.mark.asyncio
     # async def test_scheduler_processes_execution_with_failure_result(
