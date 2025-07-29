@@ -37,13 +37,9 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy source code
 COPY src/ ./src/
 COPY prompts/ ./prompts/
-COPY scripts/docker-entrypoint.sh /app/entrypoint.sh
 
-# Make entrypoint script executable
-RUN chmod +x /app/entrypoint.sh
-
-# Expose port for FastAPI (will be ignored for scheduler mode)
+# Expose port for FastAPI
 EXPOSE 8000
 
-# Set entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Start FastAPI with integrated scheduler
+CMD ["fastapi", "run", "src/agentapi/main.py", "--port", "8000", "--host", "0.0.0.0"]
