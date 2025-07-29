@@ -8,6 +8,7 @@ from core.services.agent import AgentExecutionService
 from scheduler.services.agent_executor import AgentExecutor
 from scheduler.settings import SchedulerSettings
 from typing import Any
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -28,17 +29,23 @@ class SchedulerService:
             return 0
 
         logger.info(f"Found {len(pending_executions)} pending executions")
-        processed_count = 0
 
-        for execution in pending_executions:
-            try:
-                if await self._try_process_execution(session, execution):
-                    processed_count += 1
-            except Exception as e:
-                logger.error(f"Error processing execution {execution.id}: {e}")
+        execution_tasks = [
+            asyncio.create_task(self._execution_task(session, execution))
+            for execution in pending_executions
+        ]
+        processed_count = sum(await asyncio.gather(*execution_tasks))
 
         logger.info(f"Processed {processed_count} pending executions")
         return processed_count
+
+    async def _execution_task(self, session: Session, execution: AgentExecution) -> int:
+        try:
+            if await self._try_process_execution(session, execution):
+                return 1
+        except Exception as e:
+            logger.error(f"Error processing execution {execution.id}: {e}")
+        return 0
 
     async def _try_process_execution(self, session: Session, execution: AgentExecution) -> bool:
         locked_execution = self.execution_service.acquire_lock(session, execution)
