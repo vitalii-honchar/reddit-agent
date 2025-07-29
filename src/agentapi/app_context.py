@@ -9,7 +9,7 @@ from agents.prompt import PromptManager
 from agents.search_agent.tool.reddit.tools import RedditToolsService
 from core.repositories import AgentConfigurationRepository, AgentExecutionRepository
 from core.services import AgentConfigurationService, AgentExecutionService
-from scheduler.main import SchedulerManager
+from scheduler.scheduler import SchedulerManager
 from scheduler.scheduler_app_context import SchedulerAppContext
 from scheduler.settings import SchedulerSettings
 

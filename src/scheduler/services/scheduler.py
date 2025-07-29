@@ -18,7 +18,7 @@ class SchedulerService:
     executor: AgentExecutor
     settings: SchedulerSettings
 
-    async def process_pending_executions(self, session: Session):
+    async def process_pending_executions(self, session: Session) -> int:
         pending_executions = self.execution_service.find_pending(
             session=session,
             threshold=self.settings.threshold_seconds
@@ -38,6 +38,7 @@ class SchedulerService:
                 logger.error(f"Error processing execution {execution.id}: {e}")
 
         logger.info(f"Processed {processed_count} pending executions")
+        return processed_count
 
     async def _try_process_execution(self, session: Session, execution: AgentExecution) -> bool:
         locked_execution = self.execution_service.acquire_lock(session, execution)

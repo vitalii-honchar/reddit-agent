@@ -10,8 +10,9 @@ from core.models import AgentConfiguration
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
+def client() -> Generator[TestClient, None, None]:
+    with TestClient(app) as client:
+        yield client
 
 @pytest.fixture
 def session() -> Generator[Session, None, None]:
