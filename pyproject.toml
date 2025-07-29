@@ -27,6 +27,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "openapi-python-client>=0.25.3",
     "pytest-xdist>=3.8.0",
     "ruff>=0.12.4",
 ]

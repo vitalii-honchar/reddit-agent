@@ -28,6 +28,7 @@ class AppSettings(BaseSettings):
     class Config:
         env_file = ".env"
         env_prefix = "INDIE_HACKERS_AGENT_"
+        extra = "allow"
 
 
 class AppContext:
