@@ -2,12 +2,13 @@ from pydantic_settings import BaseSettings
 from sqlmodel import create_engine
 
 from insights.scheduler import InsightsScheduler
-from insights.services import AgentAPIService
-
+from insights.services import AgentAPIService, AgentConfigurationService
+import logging
 
 class AppSettings(BaseSettings):
     db_url: str
     agent_api_base_url: str
+    insights_scheduler_timeout: int = 60
     debug: bool = False
 
     class Config:
@@ -21,7 +22,13 @@ class AppContext:
     def __init__(self, settings: AppSettings):
         self.db_engine = create_engine(settings.db_url, echo=settings.debug)
         self.agent_api_service = AgentAPIService(settings.agent_api_base_url)
-        self.scheduler = InsightsScheduler(self.agent_api_service)
+        self.agent_configuration_service = AgentConfigurationService(self.agent_api_service)
+        self.logger = logging.getLogger("uvicorn")
+        self.scheduler = InsightsScheduler(
+            timeout_seconds=settings.insights_scheduler_timeout,
+            logger=self.logger,
+            agent_api_service=self.agent_api_service
+        )
 
 
 def create_app_context() -> AppContext:

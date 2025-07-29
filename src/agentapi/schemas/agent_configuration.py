@@ -11,6 +11,12 @@ class AgentConfigurationCreate(BaseModel):
     data: Dict[str, Any] = Field(description="Agent configuration data")
 
 
+class AgentConfigurationUpdate(BaseModel):
+    id: UUID = Field(description="Agent ID")
+    agent_type: AgentType = Field(description="Agent type")
+    data: Dict[str, Any] = Field(description="Agent configuration data")
+
+
 class AgentConfigurationRead(BaseModel):
     id: UUID = Field(description="Agent ID")
     agent_type: AgentType = Field(description="Agent type")

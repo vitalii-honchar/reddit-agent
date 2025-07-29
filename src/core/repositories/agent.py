@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import and_, or_
 from sqlmodel import Session, select, update
+from sqlalchemy.exc import NoResultFound
 
 from core.models import AgentConfiguration, AgentExecution, utcnow
 
@@ -23,6 +24,28 @@ class AgentConfigurationRepository:
         return session.exec(
             select(AgentConfiguration).where(AgentConfiguration.id == configuration_id)  # type: ignore
         ).one()
+
+    def upsert(self, session: Session, agent_configuration: AgentConfiguration) -> AgentConfiguration:
+        """Create or update an agent configuration. If ID exists, update; otherwise, create."""
+        try:
+            # Try to get existing configuration
+            existing = session.exec(
+                select(AgentConfiguration).where(AgentConfiguration.id == agent_configuration.id)  # type: ignore
+            ).one()
+            
+            # Update existing configuration
+            existing.agent_type = agent_configuration.agent_type
+            existing.data = agent_configuration.data
+            existing.updated_at = utcnow()
+            
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+            return existing
+            
+        except NoResultFound:
+            # Configuration doesn't exist, create new one
+            return self.create(session, agent_configuration)
 
 
 class AgentExecutionRepository:

@@ -5,7 +5,7 @@ from core.models import AgentConfiguration, AgentExecution
 from core.repositories import AgentConfigurationRepository, AgentExecutionRepository
 from typing import Sequence
 
-from agentapi.schemas import AgentConfigurationCreate
+from agentapi.schemas import AgentConfigurationCreate, AgentConfigurationUpdate
 from uuid import UUID
 
 from agentapi.schemas.agent_execution import AgentExecutionCreate
@@ -23,6 +23,9 @@ class AgentConfigurationService:
 
     def get_by_id(self, session: Session, configuration_id: UUID) -> AgentConfiguration:
         return self.repository.get_by_id(session, configuration_id)
+
+    def upsert(self, session: Session, update: AgentConfigurationUpdate) -> AgentConfiguration:
+        return self.repository.upsert(session, AgentConfiguration.model_validate(update))
 
 @dataclass
 class AgentExecutionService:

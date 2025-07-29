@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from uuid import UUID
-from agentapi.schemas import AgentConfigurationCreate, AgentConfigurationRead
+from agentapi.schemas import AgentConfigurationCreate, AgentConfigurationRead, AgentConfigurationUpdate
 from agentapi.dependencies import SessionDep, AgentConfigurationServiceDep
 from typing import List
 
@@ -28,3 +28,11 @@ def get_configuration(
 @router.get("/", response_model=List[AgentConfigurationRead])
 def get_configurations(session: SessionDep, configuration_service: AgentConfigurationServiceDep):
     return configuration_service.find_all(session)
+
+@router.put("/upsert", response_model=AgentConfigurationRead)
+def upsert_configuration(
+        session: SessionDep,
+        configuration_service: AgentConfigurationServiceDep,
+        configuration_update: AgentConfigurationUpdate
+) -> AgentConfigurationRead:
+    return configuration_service.upsert(session, configuration_update)
