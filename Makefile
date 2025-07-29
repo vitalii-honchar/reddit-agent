@@ -45,7 +45,7 @@ clean:
 # Start the FastAPI server in background
 start-api:
 	@echo "Starting FastAPI server..."
-	uv run python -m src.agentapi.main &
+	uv run fastapi src.agentapi.main &
 	@echo "Waiting for server to start..."
 	@sleep 3
 	@echo "Server should be running on http://localhost:8000"

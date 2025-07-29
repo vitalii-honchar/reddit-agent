@@ -25,9 +25,11 @@ def get_configuration(
 ):
     return configuration_service.get_by_id(session, configuration_id)
 
+
 @router.get("/", response_model=List[AgentConfigurationRead])
 def get_configurations(session: SessionDep, configuration_service: AgentConfigurationServiceDep):
     return configuration_service.find_all(session)
+
 
 @router.put("/upsert", response_model=AgentConfigurationRead)
 def upsert_configuration(
