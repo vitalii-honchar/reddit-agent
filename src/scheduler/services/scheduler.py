@@ -10,8 +10,7 @@ from scheduler.settings import SchedulerSettings
 from typing import Any
 import asyncio
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger("uvicorn")
 
 @dataclass
 class SchedulerService:

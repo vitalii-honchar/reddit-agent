@@ -10,8 +10,7 @@ from agents.search_agent import CreateSearchAgentCommand, execute_search
 from core.models import AgentExecution
 from scheduler.settings import SchedulerSettings
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger("uvicorn")
 
 @dataclass
 class AgentExecutor:

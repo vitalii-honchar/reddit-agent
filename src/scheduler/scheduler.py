@@ -8,7 +8,7 @@ from sqlmodel import Session
 
 from scheduler.services.scheduler import SchedulerService
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 
 
 class SchedulerManager:
