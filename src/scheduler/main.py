@@ -55,7 +55,6 @@ class SchedulerManager:
         logger.info(f"Starting scheduler with poll_interval = {self.poll_interval_seconds} s")
         while not self.shutdown_event.is_set():
             try:
-                print("Before action")
                 async with self.get_session() as session:
                     await self.scheduler_service.process_pending_executions(session)
             except Exception:
