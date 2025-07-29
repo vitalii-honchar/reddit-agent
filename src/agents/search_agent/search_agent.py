@@ -10,7 +10,7 @@ from agents.search_agent.models import CreateSearchAgentCommand, SearchResult
 from agents.search_agent.tool import create_reddit_tools
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn")
 
 
 async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchResult:

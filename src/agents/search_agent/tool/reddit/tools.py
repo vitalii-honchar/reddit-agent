@@ -8,6 +8,8 @@ from typing import Callable
 from abc import ABC, abstractmethod
 import logging
 
+logger = logging.getLogger("uvicorn")
+
 class SubmissionFilterStrategy(ABC):
     """Abstract base class for submission filtering strategies."""
     
@@ -130,7 +132,7 @@ class RedditToolsService:
         self.filter_manager = SubmissionFilterManager()
 
     async def search(self, query: SearchQuery) -> SearchResult:
-        logging.info(f"Searching reddit: query = {query}")
+        logger.info(f"Searching reddit: query = {query}")
         subreddit = await self.reddit.subreddit(query.subreddit)
         submissions = subreddit.search(query=query.query, sort=query.sort, time_filter=query.time_filter)
 
@@ -143,7 +145,7 @@ class RedditToolsService:
             if summarized_submission:
                 res_submissions.append(summarized_submission)
 
-        logging.info(f"Found Reddit submissions: submissions = {len(res_submissions)}")
+        logger.info(f"Found Reddit submissions: submissions = {len(res_submissions)}")
 
         return SearchResult(
             subreddit=query.subreddit,
@@ -188,7 +190,7 @@ class RedditToolsService:
             return all_comments
             
         except Exception:
-            logging.exception(f"Failed to download comments for submission {submission.id}")
+            logger.exception(f"Failed to download comments for submission {submission.id}")
             return []
 
 
@@ -248,7 +250,7 @@ def create_reddit_search_tool(reddit_service: RedditToolsService) -> Callable:
             result = await reddit_service.search(query)
             return result.model_dump_json()
         except Exception as e:
-            logging.exception(f"Failed to get Reddit search results: query = {query}")
+            logger.exception(f"Failed to get Reddit search results: query = {query}")
             raise e
     
     return reddit_search
