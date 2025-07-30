@@ -18,7 +18,7 @@ async def lifespan(_: FastAPI):
 
     yield
 
-    await ctx.scheduler_manager.stop()
+    await ctx.scheduler.stop()
 
 
 app = FastAPI(lifespan=lifespan)

@@ -1,7 +1,9 @@
 import logging
+import uuid
 
 from core.scheduler import Scheduler
-from insights.services import AgentAPIService
+from insights.agentapi_client.fast_api_client.models import AgentExecutionCreate
+from insights.services import AgentAPIService, configs
 
 
 class InsightsScheduler(Scheduler):
@@ -10,11 +12,18 @@ class InsightsScheduler(Scheduler):
             self,
             timeout_seconds: float,
             logger: logging.Logger,
-            agent_api_service: AgentAPIService,
+            base_url: str,
     ):
         super().__init__(timeout_seconds, logger)
-        self.agent_api_service = agent_api_service
+        self.base_url = base_url
 
     async def execute(self):
-        # self.agent_api_service.
-        pass
+        self.logger.info("Executing agents: %d", len(configs))
+        agent_api_service = AgentAPIService(self.base_url)
+        for config in configs:
+            self.logger.info("Executing agent: config_id = %s", config.id)
+            await agent_api_service.create_execution(
+                AgentExecutionCreate(id=uuid.uuid4(), config_id=config.id)
+            )
+
+        self.logger.info("Executed agents: %d", len(configs))

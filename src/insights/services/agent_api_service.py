@@ -90,11 +90,10 @@ class AgentAPIService:
         Returns:
             UUID of the created execution
         """
-        response = await create_execution_agent_executions_post.asyncio(
+        return await create_execution_agent_executions_post.asyncio(
             client=self.client,
             body=execution
         )
-        return UUID(response)
     
     async def get_execution(self, execution_id: UUID) -> Optional[AgentExecutionRead]:
         """Get an agent execution by ID.

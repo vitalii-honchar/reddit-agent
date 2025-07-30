@@ -8,7 +8,7 @@ import logging
 class AppSettings(BaseSettings):
     db_url: str
     agent_api_base_url: str
-    insights_scheduler_timeout: int = 60
+    insights_scheduler_timeout: int = 600
     debug: bool = False
 
     class Config:
@@ -27,7 +27,7 @@ class AppContext:
         self.scheduler = InsightsScheduler(
             timeout_seconds=settings.insights_scheduler_timeout,
             logger=self.logger,
-            agent_api_service=self.agent_api_service
+            base_url=settings.agent_api_base_url,
         )
 
 
