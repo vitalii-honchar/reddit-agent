@@ -22,8 +22,8 @@ class AppContext:
     def __init__(self, settings: AppSettings):
         self.db_engine = create_engine(settings.db_url, echo=settings.debug)
         self.agent_api_service = AgentAPIService(settings.agent_api_base_url)
-        self.agent_configuration_service = AgentConfigurationService(self.agent_api_service)
         self.logger = logging.getLogger("uvicorn")
+        self.agent_configuration_service = AgentConfigurationService(self.agent_api_service, self.logger)
         self.scheduler = InsightsScheduler(
             timeout_seconds=settings.insights_scheduler_timeout,
             logger=self.logger,

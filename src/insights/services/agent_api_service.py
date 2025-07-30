@@ -8,6 +8,7 @@ from insights.agentapi_client.fast_api_client.api.agent_configurations import (
     create_configuration_agent_configurations_post,
     get_configuration_agent_configurations_configuration_id_get,
     get_configurations_agent_configurations_get,
+    upsert_configuration_agent_configurations_upsert_put,
 )
 from insights.agentapi_client.fast_api_client.api.agent_executions import (
     create_execution_agent_executions_post,
@@ -17,7 +18,7 @@ from insights.agentapi_client.fast_api_client.models import (
     AgentConfigurationCreate,
     AgentConfigurationRead,
     AgentExecutionCreate,
-    AgentExecutionRead,
+    AgentExecutionRead, AgentConfigurationUpdate,
 )
 
 class AgentAPIService:
@@ -60,6 +61,12 @@ class AgentAPIService:
         return await get_configuration_agent_configurations_configuration_id_get.asyncio(
             client=self.client,
             configuration_id=config_id
+        )
+
+    async def upsert_configuration(self, config: AgentConfigurationUpdate) -> Optional[AgentConfigurationRead]:
+        return await upsert_configuration_agent_configurations_upsert_put.asyncio(
+            client=self.client,
+            body=config,
         )
     
     async def get_all_configurations(self) -> List[AgentConfigurationRead]:

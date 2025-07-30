@@ -9,6 +9,8 @@ from .dependencies import ctx
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    await ctx.agent_configuration_service.migrate()
+
     threading.Thread(
         target=lambda: asyncio.run(ctx.scheduler.start()),
         daemon=True
