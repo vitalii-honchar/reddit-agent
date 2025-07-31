@@ -3,345 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 AI Agent Insights - Research Dashboard</title>
+    <title>AI Agent Insights</title>
     <link rel="icon" type="image/png" href="/static/logo.png">
-    <link rel="shortcut icon" type="image/png" href="/static/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        'sans': ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-white min-h-screen text-gray-900 font-sans">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-8 px-6">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex items-center justify-between mb-4">
-                <div></div> <!-- Spacer for center alignment -->
-                
-                <div class="flex items-center space-x-4">
-                    <img src="/static/logo.png" alt="Logo" class="h-12 w-12 rounded-lg shadow-lg">
-                    <div class="text-center">
-                        <h1 class="text-4xl font-bold">🎯 AI Agent Insights</h1>
-                        <p class="text-purple-100 text-lg">Intelligent research powered by AI agents</p>
-                    </div>
+    <header class="border-b border-gray-200 py-6">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="/static/logo.png" alt="Logo" class="h-8 w-8">
+                    <h1 class="text-xl font-semibold">AI Agent Insights</h1>
                 </div>
-                
-                <div class="hidden md:block">
-                    <a href="https://vitaliihonchar.com/" target="_blank" 
-                       class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium backdrop-blur-sm">
-                        About Author
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Mobile About Author Button -->
-            <div class="md:hidden text-center">
                 <a href="https://vitaliihonchar.com/" target="_blank" 
-                   class="inline-block bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium backdrop-blur-sm">
-                    About Author
+                   class="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200">
+                    <span>👋</span>
+                    <span>About Author</span>
                 </a>
             </div>
         </div>
-    </div>
+    </header>
 
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Desktop Layout -->
-        <div class="hidden lg:grid lg:grid-cols-12 lg:gap-8">
-            <!-- Left Sidebar - AI Agents -->
-            <div class="lg:col-span-3">
-                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 sticky top-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">🤖 AI Agents</h2>
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Agent Selector -->
+        {% if configs %}
+        <div class="mb-8">
+            <div class="flex flex-wrap gap-2">
+                {% for config in configs %}
+                <button onclick="window.location.href='?config_id={{ config.id }}'"
+                        class="{% if config.id == selected_config %}bg-gray-900 text-white{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                    {{ config.name }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Results -->
+        <div class="space-y-12">
                     
-                    {% if configs %}
-                        <div class="space-y-3">
-                            {% for config in configs %}
-                            <div class="{% if config.id == selected_config %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white{% else %}bg-gray-50 hover:bg-gray-100{% endif %} rounded-lg p-3 cursor-pointer transition-all duration-200"
-                                 onclick="window.location.href='?config_id={{ config.id }}'">
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-sm">•</span>
-                                    <span class="font-medium text-sm">{{ config.name }} {% if config.id == selected_config %}*{% endif %}</span>
+            {% if executions %}
+                {% for execution in executions %}
+                    {% if execution.success_result and execution.success_result.findings %}
+                    <!-- Execution Results -->
+                    <div class="border-b border-gray-100 pb-12 last:border-b-0">
+                        <div class="mb-6">
+                            <time class="text-sm text-gray-500">{{ execution.created_at.strftime('%B %d, %Y') }}</time>
+                        </div>
+
+                        <!-- Findings -->
+                        <div class="space-y-8">
+                            {% for finding in execution.success_result.findings %}
+                            <article class="pb-8 border-b border-gray-100 last:border-b-0">
+                                <!-- Title and Source -->
+                                <div class="mb-4">
+                                    <h2 class="text-lg font-semibold mb-2 leading-tight">
+                                        {{ finding.title }}
+                                    </h2>
+                                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                                        <span>{{ finding.source.upper() }}</span>
+                                        <span>{{ (finding.relevance_score * 100) | round }}% relevant</span>
+                                    </div>
                                 </div>
-                            </div>
+                                
+                                <!-- Summary -->
+                                {% if finding.summary %}
+                                <p class="text-gray-700 leading-relaxed mb-4">
+                                    {{ finding.summary }}
+                                </p>
+                                {% endif %}
+                                
+                                <!-- Key Points -->
+                                {% if finding.action_items %}
+                                <div class="mb-4">
+                                    <h3 class="font-medium text-gray-900 mb-2">Key Points</h3>
+                                    <ul class="space-y-1 text-gray-700">
+                                        {% for item in finding.action_items %}
+                                        <li class="flex items-start">
+                                            <span class="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                                            <span>{{ item }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Source Link -->
+                                {% if finding.source_id %}
+                                <a href="https://reddit.com/comments/{{ finding.source_id }}" target="_blank" 
+                                   class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+                                    Read original discussion
+                                    <svg class="ml-1 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </article>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <p class="text-gray-500 text-sm">No agents configured</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Main Content - Search Results -->
-            <div class="lg:col-span-9">
-                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">📊 Research Insights</h2>
-                    
-                    {% if executions %}
-                        {% for execution in executions %}
-                            {% if execution.success_result and execution.success_result.findings %}
-                            <!-- Research Results Container -->
-                            <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 border border-blue-200 rounded-2xl p-8 mb-10 shadow-sm">
-                                <!-- Header with Stats -->
-                                <div class="flex items-center justify-between mb-8">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-3 shadow-lg">
-                                            <span class="text-white text-2xl">🔍</span>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Research Results</h3>
-                                            <p class="text-blue-600 font-medium">{{ execution.created_at.strftime('%B %d, %Y') }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Stories Grid -->
-                                <div class="grid gap-6 lg:grid-cols-2">
-                                    {% for finding in execution.success_result.findings %}
-                                    <div class="group bg-white border border-gray-200 rounded-xl p-6 hover:border-emerald-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                                        <!-- Story Header -->
-                                        <div class="flex items-start justify-between mb-4">
-                                            <div class="flex items-center space-x-2">
-                                                <div class="bg-gradient-to-r from-orange-400 to-pink-500 rounded-lg p-2">
-                                                    <span class="text-white text-sm">💰</span>
-                                                </div>
-                                                <span class="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-1 rounded-full">
-                                                    {{ (finding.relevance_score * 100) | round }}% match
-                                                </span>
-                                            </div>
-                                            <div class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                                                {{ finding.source.upper() }}
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Story Title -->
-                                        <h4 class="text-lg font-bold text-gray-900 mb-3 leading-tight group-hover:text-emerald-700 transition-colors">
-                                            {{ finding.title }}
-                                        </h4>
-                                        
-                                        <!-- Story Summary -->
-                                        {% if finding.summary %}
-                                        <p class="text-gray-600 text-sm leading-relaxed mb-5">
-                                            {{ finding.summary }}{% if finding.summary|length > 120 %}...{% endif %}
-                                        </p>
-                                        {% endif %}
-                                        
-                                        <!-- Key Takeaways -->
-                                        {% if finding.action_items %}
-                                        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-r-lg p-4 mb-4">
-                                            <h5 class="flex items-center font-bold text-amber-800 mb-3 text-sm">
-                                                <span class="mr-2">⚡</span>
-                                                Key Takeaways
-                                            </h5>
-                                            <ul class="space-y-2">
-                                                {% for item in finding.action_items %}
-                                                <li class="flex items-start space-x-3 text-sm text-gray-700">
-                                                    <span class="bg-amber-400 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold mt-0.5 shrink-0">{{ loop.index }}</span>
-                                                    <span class="leading-snug font-medium">{{ item }}</span>
-                                                </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                        {% endif %}
-                                        
-                                        <!-- Source Link -->
-                                        {% if finding.source_id %}
-                                        <div class="flex justify-end">
-                                            <a href="https://reddit.com/comments/{{ finding.source_id }}" target="_blank" 
-                                               class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg">
-                                                <span>📖</span>
-                                                <span>Read Full Story</span>
-                                                <span class="text-xs">↗</span>
-                                            </a>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <div class="text-center py-12">
-                            <div class="text-6xl mb-4">🚀</div>
-                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No research results yet</h3>
-                            <p class="text-gray-500">AI-curated insights will appear here when agents complete their research.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Layout -->
-        <div class="lg:hidden">
-            <!-- Mobile Agent Selector -->
-            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-                <h2 class="text-lg font-semibold text-gray-800 mb-3">📱 Select Agent</h2>
-                <div class="space-y-2">
-                    {% if configs %}
-                        {% for config in configs %}
-                        <div class="{% if config.id == selected_config %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white{% else %}bg-gray-50{% endif %} rounded-lg p-3 cursor-pointer"
-                             onclick="window.location.href='?config_id={{ config.id }}'">
-                            <span class="font-medium text-sm">{{ config.name }} Agent {% if config.id == selected_config %}*{% endif %}</span>
-                        </div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Mobile Results -->
-            <div class="bg-white rounded-lg shadow-md p-4">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">📊 Research Insights</h2>
-                
-                {% if executions %}
-                    {% for execution in executions %}
-                        {% if execution.success_result and execution.success_result.findings %}
-                        <!-- Mobile Research Results Container -->
-                        <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 border border-blue-200 rounded-xl p-5 mb-8">
-                            <!-- Mobile Header -->
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center space-x-3">
-                                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-2">
-                                        <span class="text-white text-lg">🔍</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Research Results</h3>
-                                        <p class="text-blue-600 text-sm font-medium">{{ execution.created_at.strftime('%b %d') }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Mobile Stories -->
-                            <div class="space-y-4">
-                                {% for finding in execution.success_result.findings %}
-                                <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                                    <!-- Mobile Story Header -->
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex items-center space-x-2">
-                                            <div class="bg-gradient-to-r from-orange-400 to-pink-500 rounded-lg p-1">
-                                                <span class="text-white text-xs">💰</span>
-                                            </div>
-                                            <span class="bg-emerald-100 text-emerald-700 text-xs font-semibold px-2 py-1 rounded-full">
-                                                {{ (finding.relevance_score * 100) | round }}%
-                                            </span>
-                                        </div>
-                                        <div class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
-                                            {{ finding.source.upper() }}
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Mobile Story Title -->
-                                    <h4 class="text-md font-bold text-gray-900 mb-2 leading-tight">
-                                        {{ finding.title }}
-                                    </h4>
-                                    
-                                    <!-- Mobile Story Summary -->
-                                    {% if finding.summary %}
-                                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
-                                        {{ finding.summary[:100] }}{% if finding.summary|length > 100 %}...{% endif %}
-                                    </p>
-                                    {% endif %}
-                                    
-                                    <!-- Mobile Key Takeaways -->
-                                    {% if finding.action_items %}
-                                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-400 rounded-r-lg p-3 mb-4">
-                                        <h5 class="flex items-center font-bold text-amber-800 mb-2 text-xs">
-                                            <span class="mr-1">⚡</span>
-                                            Key Takeaways
-                                        </h5>
-                                        <ul class="space-y-2">
-                                            {% for item in finding.action_items[:2] %}
-                                            <li class="flex items-start space-x-2 text-xs text-gray-700">
-                                                <span class="bg-amber-400 text-white rounded-full w-3 h-3 flex items-center justify-center text-xs font-bold mt-0.5 shrink-0">{{ loop.index }}</span>
-                                                <span class="leading-snug font-medium">{{ item[:120] }}{% if item|length > 120 %}...{% endif %}</span>
-                                            </li>
-                                            {% endfor %}
-                                            {% if finding.action_items|length > 2 %}
-                                            <li class="text-xs text-amber-700 ml-5 font-medium">
-                                                +{{ finding.action_items|length - 2 }} more takeaways
-                                            </li>
-                                            {% endif %}
-                                        </ul>
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <!-- Mobile Source Link -->
-                                    {% if finding.source_id %}
-                                    <div class="flex justify-center">
-                                        <a href="https://reddit.com/comments/{{ finding.source_id }}" target="_blank" 
-                                           class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-md">
-                                            <span>📖</span>
-                                            <span>Read Story</span>
-                                            <span>↗</span>
-                                        </a>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <div class="text-center py-8">
-                        <div class="text-4xl mb-3">🚀</div>
-                        <h3 class="text-lg font-semibold text-gray-700 mb-1">No research results yet</h3>
-                        <p class="text-gray-500 text-sm">AI-curated insights will appear when agents finish research.</p>
                     </div>
-                {% endif %}
-            </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-16">
+                    <p class="text-gray-500 mb-4">No insights available yet</p>
+                    <p class="text-sm text-gray-400">Results will appear here when agents complete their research</p>
+                </div>
+            {% endif %}
         </div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-8 mt-16">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row items-center justify-between">
-                <div class="flex items-center space-x-3 mb-4 md:mb-0">
-                    <img src="/static/logo.png" alt="Logo" class="h-8 w-8 rounded-lg">
-                    <span class="text-lg font-semibold">AI Agent Insights</span>
-                </div>
-                
-                <div class="text-center md:text-right">
-                    <p class="text-gray-300 text-sm mb-2">
-                        Developed by <a href="https://vitaliihonchar.com/" target="_blank" 
-                                       class="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                                       Vitalii Honchar
-                                     </a>
-                    </p>
-                    <p class="text-gray-400 text-xs">
-                        AI-powered research insights
-                    </p>
-                </div>
-            </div>
-            
-            <!-- Divider -->
-            <div class="border-t border-gray-700 mt-6 pt-6">
-                <div class="flex flex-col md:flex-row items-center justify-between text-sm text-gray-400">
-                    <p>© 2024 AI Agent Insights. All rights reserved.</p>
-                    <div class="flex space-x-6 mt-2 md:mt-0">
-                        <a href="https://vitaliihonchar.com/" target="_blank" 
-                           class="hover:text-gray-300 transition-colors">About</a>
-                        <a href="https://vitaliihonchar.com/#contact" target="_blank" 
-                           class="hover:text-gray-300 transition-colors">Contact</a>
-                    </div>
-                </div>
-            </div>
+    <footer class="border-t border-gray-200 mt-16 py-8">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500">
+                Made by <a href="https://vitaliihonchar.com/" class="text-gray-700 hover:text-gray-900">Vitalii Honchar</a> © 2025
+            </p>
         </div>
     </footer>
-
-    <!-- Refresh Button -->
-    <button onclick="location.reload()" 
-            class="fixed bottom-6 right-6 bg-white shadow-lg rounded-full p-4 hover:shadow-xl transition-shadow duration-200 z-50">
-        <span class="text-xl">🔄</span>
-    </button>
 </body>
 </html>

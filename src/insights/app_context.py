@@ -8,7 +8,7 @@ import logging
 class AppSettings(BaseSettings):
     db_url: str
     agent_api_base_url: str
-    insights_scheduler_timeout: int = 600
+    insights_scheduler_timeout: int = 3600 * 24 * 7
     debug: bool = False
     scheduler_enabled: bool = True
 

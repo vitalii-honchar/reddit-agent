@@ -10,16 +10,16 @@ from insights.services import AgentAPIService, configs
 from insights.agentapi_client.fast_api_client.models import GetRecentExecutionsAgentExecutionsGetState
 
 def get_agent_display_name(config):
-    """Generate display name based on config ID."""
+    """Generate display name with emoji based on config ID."""
     config_id = str(config.id)
     if config_id == "1b676236-6d21-11f0-9248-5ee52574761b":
-        return "SaaS Launch"
+        return "🚀 SaaS Launch"
     elif config_id == "1f866f9a-6de6-11f0-9cdb-5ee52574761b":
-        return "Cybersecurity"
+        return "🔒 Cybersecurity"
     elif config_id == "2a64ea22-6de6-11f0-9bbe-5ee52574761b":
-        return "Idea Validation"
+        return "💡 Idea Validation"
     else:
-        return "Research Agent"
+        return "🤖 Research Agent"
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ async def insights_page(
         executions = await agent_api.get_recent_executions(
             config_id=config_id,
             state=GetRecentExecutionsAgentExecutionsGetState.COMPLETED,
-            limit=10
+            limit=3
         )
     except Exception as e:
         logger.exception(f"Failed to fetch executions for config {config_id}")
