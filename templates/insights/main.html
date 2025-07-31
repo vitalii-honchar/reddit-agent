@@ -69,7 +69,7 @@
                                  onclick="window.location.href='?config_id={{ config.id }}'">
                                 <div class="flex items-center space-x-2">
                                     <span class="text-sm">•</span>
-                                    <span class="font-medium text-sm">SaaS Launch {% if config.id == selected_config %}*{% endif %}</span>
+                                    <span class="font-medium text-sm">{{ config.name }} {% if config.id == selected_config %}*{% endif %}</span>
                                 </div>
                             </div>
                             {% endfor %}
@@ -101,22 +101,6 @@
                                             <p class="text-blue-600 font-medium">{{ execution.created_at.strftime('%B %d, %Y') }}</p>
                                         </div>
                                     </div>
-                                    {% if execution.success_result.metadata %}
-                                    <div class="flex space-x-4">
-                                        <div class="text-center">
-                                            <div class="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1 rounded-full">
-                                                {{ execution.success_result.metadata.filtering_stats.accepted or execution.success_result.findings|length }}
-                                            </div>
-                                            <div class="text-xs text-gray-600 mt-1">Curated</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="bg-violet-100 text-violet-800 text-sm font-bold px-3 py-1 rounded-full">
-                                                {{ execution.success_result.metadata.total_searches or execution.executions }}
-                                            </div>
-                                            <div class="text-xs text-gray-600 mt-1">Searches</div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
                                 </div>
 
                                 <!-- Stories Grid -->
@@ -206,7 +190,7 @@
                         {% for config in configs %}
                         <div class="{% if config.id == selected_config %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white{% else %}bg-gray-50{% endif %} rounded-lg p-3 cursor-pointer"
                              onclick="window.location.href='?config_id={{ config.id }}'">
-                            <span class="font-medium text-sm">SaaS Launch Agent {% if config.id == selected_config %}*{% endif %}</span>
+                            <span class="font-medium text-sm">{{ config.name }} Agent {% if config.id == selected_config %}*{% endif %}</span>
                         </div>
                         {% endfor %}
                     {% endif %}
@@ -233,14 +217,6 @@
                                         <p class="text-blue-600 text-sm font-medium">{{ execution.created_at.strftime('%b %d') }}</p>
                                     </div>
                                 </div>
-                                {% if execution.success_result.metadata %}
-                                <div class="text-center">
-                                    <div class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded-full">
-                                        {{ execution.success_result.metadata.filtering_stats.accepted or execution.success_result.findings|length }}
-                                    </div>
-                                    <div class="text-xs text-gray-600 mt-1">Curated</div>
-                                </div>
-                                {% endif %}
                             </div>
 
                             <!-- Mobile Stories -->
