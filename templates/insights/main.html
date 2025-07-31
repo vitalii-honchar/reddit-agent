@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 SaaS Success Stories - AI Agent Insights</title>
+    <title>🎯 AI Agent Insights - Research Dashboard</title>
     <link rel="icon" type="image/png" href="/static/logo.png">
     <link rel="shortcut icon" type="image/png" href="/static/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,8 +31,8 @@
                 <div class="flex items-center space-x-4">
                     <img src="/static/logo.png" alt="Logo" class="h-12 w-12 rounded-lg shadow-lg">
                     <div class="text-center">
-                        <h1 class="text-4xl font-bold">🚀 SaaS Success Stories</h1>
-                        <p class="text-purple-100 text-lg">AI-curated insights from successful founders</p>
+                        <h1 class="text-4xl font-bold">🎯 AI Agent Insights</h1>
+                        <p class="text-purple-100 text-lg">Intelligent research powered by AI agents</p>
                     </div>
                 </div>
                 
@@ -83,22 +83,22 @@
             <!-- Main Content - Search Results -->
             <div class="lg:col-span-9">
                 <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">🎯 SaaS Success Insights</h2>
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">📊 Research Insights</h2>
                     
                     {% if executions %}
                         {% for execution in executions %}
                             {% if execution.success_result and execution.success_result.findings %}
-                            <!-- Success Stories Container -->
-                            <div class="bg-gradient-to-br from-emerald-50 via-white to-violet-50 border border-emerald-200 rounded-2xl p-8 mb-10 shadow-sm">
+                            <!-- Research Results Container -->
+                            <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 border border-blue-200 rounded-2xl p-8 mb-10 shadow-sm">
                                 <!-- Header with Stats -->
                                 <div class="flex items-center justify-between mb-8">
                                     <div class="flex items-center space-x-4">
-                                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl p-3 shadow-lg">
-                                            <span class="text-white text-2xl">🚀</span>
+                                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-3 shadow-lg">
+                                            <span class="text-white text-2xl">🔍</span>
                                         </div>
                                         <div>
-                                            <h3 class="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Success Stories</h3>
-                                            <p class="text-emerald-600 font-medium">{{ execution.created_at.strftime('%B %d, %Y') }}</p>
+                                            <h3 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Research Results</h3>
+                                            <p class="text-blue-600 font-medium">{{ execution.created_at.strftime('%B %d, %Y') }}</p>
                                         </div>
                                     </div>
                                     {% if execution.success_result.metadata %}
@@ -188,8 +188,8 @@
                     {% else %}
                         <div class="text-center py-12">
                             <div class="text-6xl mb-4">🚀</div>
-                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No success stories yet</h3>
-                            <p class="text-gray-500">AI-curated founder insights will appear here when agents complete their research.</p>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No research results yet</h3>
+                            <p class="text-gray-500">AI-curated insights will appear here when agents complete their research.</p>
                         </div>
                     {% endif %}
                 </div>
@@ -215,22 +215,22 @@
 
             <!-- Mobile Results -->
             <div class="bg-white rounded-lg shadow-md p-4">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">🎯 Success Insights</h2>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">📊 Research Insights</h2>
                 
                 {% if executions %}
                     {% for execution in executions %}
                         {% if execution.success_result and execution.success_result.findings %}
-                        <!-- Mobile Success Stories Container -->
-                        <div class="bg-gradient-to-br from-emerald-50 via-white to-violet-50 border border-emerald-200 rounded-xl p-5 mb-8">
+                        <!-- Mobile Research Results Container -->
+                        <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 border border-blue-200 rounded-xl p-5 mb-8">
                             <!-- Mobile Header -->
                             <div class="flex items-center justify-between mb-6">
                                 <div class="flex items-center space-x-3">
-                                    <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg p-2">
-                                        <span class="text-white text-lg">🚀</span>
+                                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-2">
+                                        <span class="text-white text-lg">🔍</span>
                                     </div>
                                     <div>
-                                        <h3 class="text-lg font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">Success Stories</h3>
-                                        <p class="text-emerald-600 text-sm font-medium">{{ execution.created_at.strftime('%b %d') }}</p>
+                                        <h3 class="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Research Results</h3>
+                                        <p class="text-blue-600 text-sm font-medium">{{ execution.created_at.strftime('%b %d') }}</p>
                                     </div>
                                 </div>
                                 {% if execution.success_result.metadata %}
@@ -317,7 +317,7 @@
                 {% else %}
                     <div class="text-center py-8">
                         <div class="text-4xl mb-3">🚀</div>
-                        <h3 class="text-lg font-semibold text-gray-700 mb-1">No success stories yet</h3>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-1">No research results yet</h3>
                         <p class="text-gray-500 text-sm">AI-curated insights will appear when agents finish research.</p>
                     </div>
                 {% endif %}
@@ -331,7 +331,7 @@
             <div class="flex flex-col md:flex-row items-center justify-between">
                 <div class="flex items-center space-x-3 mb-4 md:mb-0">
                     <img src="/static/logo.png" alt="Logo" class="h-8 w-8 rounded-lg">
-                    <span class="text-lg font-semibold">SaaS Success Stories</span>
+                    <span class="text-lg font-semibold">AI Agent Insights</span>
                 </div>
                 
                 <div class="text-center md:text-right">
@@ -342,7 +342,7 @@
                                      </a>
                     </p>
                     <p class="text-gray-400 text-xs">
-                        AI-powered insights for SaaS founders
+                        AI-powered research insights
                     </p>
                 </div>
             </div>
@@ -350,7 +350,7 @@
             <!-- Divider -->
             <div class="border-t border-gray-700 mt-6 pt-6">
                 <div class="flex flex-col md:flex-row items-center justify-between text-sm text-gray-400">
-                    <p>© 2024 SaaS Success Stories. All rights reserved.</p>
+                    <p>© 2024 AI Agent Insights. All rights reserved.</p>
                     <div class="flex space-x-6 mt-2 md:mt-0">
                         <a href="https://vitaliihonchar.com/" target="_blank" 
                            class="hover:text-gray-300 transition-colors">About</a>
