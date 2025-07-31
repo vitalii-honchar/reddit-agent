@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from sqlmodel import Session
 
-from core.models import AgentConfiguration, AgentExecution
+from core.models import AgentConfiguration, AgentExecution, AgentExecutionState
 from core.repositories import AgentConfigurationRepository, AgentExecutionRepository
 from typing import Sequence
 
@@ -48,3 +48,12 @@ class AgentExecutionService:
 
     def update(self, session: Session, execution: AgentExecution) -> AgentExecution:
         return self.repository.update(session, execution)
+
+    def get_recent(
+        self, 
+        session: Session, 
+        config_id: UUID,
+        state: AgentExecutionState,
+        limit: int = 10
+    ) -> Sequence[AgentExecution]:
+        return self.repository.get_recent(session, config_id=config_id, state=state, limit=limit)

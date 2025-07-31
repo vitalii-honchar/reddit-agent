@@ -6,7 +6,7 @@ from sqlalchemy import and_, or_
 from sqlmodel import Session, select, update
 from sqlalchemy.exc import NoResultFound
 
-from core.models import AgentConfiguration, AgentExecution, utcnow
+from core.models import AgentConfiguration, AgentExecution, utcnow, AgentExecutionState
 
 
 class AgentConfigurationRepository:
@@ -107,3 +107,19 @@ class AgentExecutionRepository:
                     return execution
 
         return None
+
+    def get_recent(
+        self, 
+        session: Session, 
+        config_id: UUID,
+        state: AgentExecutionState,
+        limit: int = 10
+    ) -> Sequence[AgentExecution]:
+        query = select(AgentExecution).where(  # type: ignore
+            and_(
+                AgentExecution.config_id == config_id,
+                AgentExecution.state == state
+            )
+        ).order_by(AgentExecution.updated_at.desc()).limit(limit)  # type: ignore
+        
+        return session.exec(query).all()

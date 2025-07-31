@@ -43,6 +43,8 @@ class AgentExecution(SQLModel, table=True):
     __table_args__ = (
         Index("ix_agent_execution_pending_updated_at", "updated_at",
               postgresql_where=Column("state") == "pending"),
+        Index("ix_agent_execution_config_state_updated_at", "config_id", "state", "updated_at",
+              postgresql_ops={"updated_at": "DESC"}),
     )
 
     id: UUID = Field(
