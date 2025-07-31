@@ -10,6 +10,7 @@ class AppSettings(BaseSettings):
     agent_api_base_url: str
     insights_scheduler_timeout: int = 600
     debug: bool = False
+    scheduler_enabled: bool = True
 
     class Config:
         env_file = ".env"
@@ -20,6 +21,7 @@ class AppSettings(BaseSettings):
 class AppContext:
 
     def __init__(self, settings: AppSettings):
+        self.settings = settings
         self.db_engine = create_engine(settings.db_url, echo=settings.debug)
         self.agent_api_service = AgentAPIService(settings.agent_api_base_url)
         self.logger = logging.getLogger("uvicorn")

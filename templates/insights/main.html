@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Search Insights - Reddit Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-8 px-6">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-4xl font-bold text-center mb-2">🔍 Search Insights</h1>
+            <p class="text-center text-purple-100 text-lg">AI-powered search results and findings</p>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Desktop Layout -->
+        <div class="hidden lg:grid lg:grid-cols-12 lg:gap-8">
+            <!-- Left Sidebar - AI Agents -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 sticky top-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">🤖 AI Agents</h2>
+                    
+                    {% if configs %}
+                        <div class="space-y-3">
+                            {% for config in configs %}
+                            <div class="{% if config.id == selected_config %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white{% else %}bg-gray-50 hover:bg-gray-100{% endif %} rounded-lg p-3 cursor-pointer transition-all duration-200"
+                                 onclick="window.location.href='?config_id={{ config.id }}'">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm">•</span>
+                                    <span class="font-medium text-sm">SaaS Launch {% if config.id == selected_config %}*{% endif %}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-gray-500 text-sm">No agents configured</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Main Content - Search Results -->
+            <div class="lg:col-span-9">
+                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">📊 Search Results</h2>
+                    
+                    {% if executions %}
+                        {% for execution in executions %}
+                            {% if execution.success_result and execution.success_result.findings %}
+                            <!-- Results Summary -->
+                            <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-6">
+                                <div class="flex flex-wrap items-center gap-4 text-sm">
+                                    <span class="flex items-center space-x-1">
+                                        <span>📊</span>
+                                        <span class="font-medium">Confidence: 95%</span>
+                                    </span>
+                                    <span class="flex items-center space-x-1">
+                                        <span>🔍</span>
+                                        <span>{{ execution.executions }} searches, {{ execution.success_result.findings|length }} findings</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Findings -->
+                            <div class="space-y-4">
+                                {% for finding in execution.success_result.findings %}
+                                <div class="bg-white border border-gray-200 border-l-4 border-l-indigo-500 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                                            <span class="mr-2">💡</span>
+                                            Finding #{{ loop.index }}
+                                        </h3>
+                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                                            Score: {{ "%.2f"|format(finding.relevance_score or 0.95) }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <p class="text-gray-700 font-medium mb-2">
+                                            "{{ (finding.title or finding.summary or "Untitled finding")[:100] }}{% if (finding.title or finding.summary or "")| length > 100 %}...{% endif %}"
+                                        </p>
+                                        {% if finding.summary %}
+                                        <p class="text-gray-600 text-sm leading-relaxed">
+                                            {{ finding.summary[:300] }}{% if finding.summary|length > 300 %}...{% endif %}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if finding.action_items %}
+                                    <div class="mb-4">
+                                        <h4 class="font-medium text-gray-800 mb-2">Action Items:</h4>
+                                        <ul class="space-y-1">
+                                            {% for item in finding.action_items[:3] %}
+                                            <li class="flex items-start space-x-2 text-sm text-gray-600">
+                                                <span class="text-purple-500 mt-1">•</span>
+                                                <span>{{ item[:80] }}{% if item|length > 80 %}...{% endif %}</span>
+                                            </li>
+                                            {% endfor %}
+                                            {% if finding.action_items|length > 3 %}
+                                            <li class="text-sm text-gray-500 ml-4">
+                                                ... and {{ finding.action_items|length - 3 }} more
+                                            </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="flex space-x-3">
+                                        {% if finding.source_url %}
+                                        <a href="{{ finding.source_url }}" target="_blank" class="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium px-3 py-1 rounded transition-colors duration-200">
+                                            View Source
+                                        </a>
+                                        {% endif %}
+                                        <button class="bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-medium px-3 py-1 rounded transition-colors duration-200">
+                                            Save
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-12">
+                            <div class="text-6xl mb-4">🔍</div>
+                            <h3 class="text-xl font-semibold text-gray-700 mb-2">No insights yet</h3>
+                            <p class="text-gray-500">Results will appear here when agents complete their searches.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Layout -->
+        <div class="lg:hidden">
+            <!-- Mobile Agent Selector -->
+            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">📱 Select Agent</h2>
+                <div class="space-y-2">
+                    {% if configs %}
+                        {% for config in configs %}
+                        <div class="{% if config.id == selected_config %}bg-gradient-to-r from-indigo-500 to-purple-600 text-white{% else %}bg-gray-50{% endif %} rounded-lg p-3 cursor-pointer"
+                             onclick="window.location.href='?config_id={{ config.id }}'">
+                            <span class="font-medium text-sm">SaaS Launch Agent {% if config.id == selected_config %}*{% endif %}</span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mobile Results -->
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">📊 Results</h2>
+                
+                {% if executions %}
+                    {% for execution in executions %}
+                        {% if execution.success_result and execution.success_result.findings %}
+                        <!-- Mobile Results Summary -->
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-3 mb-4">
+                            <div class="text-sm space-y-1">
+                                <div>📊 Confidence: 95%</div>
+                                <div>🔍 {{ execution.executions }} searches, {{ execution.success_result.findings|length }} findings</div>
+                            </div>
+                        </div>
+
+                        <!-- Mobile Findings -->
+                        <div class="space-y-4">
+                            {% for finding in execution.success_result.findings %}
+                            <div class="border border-gray-200 border-l-4 border-l-indigo-500 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold text-gray-800 flex items-center text-sm">
+                                        <span class="mr-1">💡</span>
+                                        Finding #{{ loop.index }}
+                                    </h3>
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                                        {{ "%.2f"|format(finding.relevance_score or 0.95) }}
+                                    </span>
+                                </div>
+                                
+                                <p class="text-gray-700 text-sm mb-3 font-medium">
+                                    "{{ (finding.title or finding.summary or "Untitled finding")[:80] }}{% if (finding.title or finding.summary or "")|length > 80 %}...{% endif %}"
+                                </p>
+                                
+                                {% if finding.action_items %}
+                                <div class="mb-3">
+                                    <h4 class="font-medium text-gray-800 text-sm mb-1">Action Items:</h4>
+                                    <ul class="space-y-1">
+                                        {% for item in finding.action_items[:2] %}
+                                        <li class="flex items-start space-x-2 text-xs text-gray-600">
+                                            <span class="text-purple-500 mt-1">•</span>
+                                            <span>{{ item[:60] }}{% if item|length > 60 %}...{% endif %}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="flex space-x-2">
+                                    {% if finding.source_url %}
+                                    <a href="{{ finding.source_url }}" target="_blank" class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">
+                                        View Source
+                                    </a>
+                                    {% endif %}
+                                    <button class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded">
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="text-4xl mb-3">🔍</div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-1">No insights yet</h3>
+                        <p class="text-gray-500 text-sm">Results will appear when agents finish searching.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Refresh Button -->
+    <button onclick="location.reload()" 
+            class="fixed bottom-6 right-6 bg-white shadow-lg rounded-full p-4 hover:shadow-xl transition-shadow duration-200">
+        <span class="text-xl">🔄</span>
+    </button>
+</body>
+</html>

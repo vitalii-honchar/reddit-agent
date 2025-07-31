@@ -13,13 +13,16 @@ from insights.agentapi_client.fast_api_client.api.agent_configurations import (
 from insights.agentapi_client.fast_api_client.api.agent_executions import (
     create_execution_agent_executions_post,
     get_execution_agent_executions_execution_id_get,
+    get_recent_executions_agent_executions_get,
 )
 from insights.agentapi_client.fast_api_client.models import (
     AgentConfigurationCreate,
     AgentConfigurationRead,
     AgentExecutionCreate,
-    AgentExecutionRead, AgentConfigurationUpdate,
+    AgentExecutionRead, 
+    AgentConfigurationUpdate,
 )
+from core.models import AgentExecutionState
 
 class AgentAPIService:
     """Async service for interacting with AgentAPI endpoints."""
@@ -107,4 +110,27 @@ class AgentAPIService:
         return await get_execution_agent_executions_execution_id_get.asyncio(
             client=self.client,
             execution_id=execution_id
+        )
+    
+    async def get_recent_executions(
+        self, 
+        config_id: UUID, 
+        state: AgentExecutionState, 
+        limit: int = 10
+    ) -> List[AgentExecutionRead]:
+        """Get recent agent executions for a specific config and state.
+        
+        Args:
+            config_id: Configuration ID to filter by
+            state: Execution state to filter by
+            limit: Maximum number of results to return
+            
+        Returns:
+            List of recent executions
+        """
+        return await get_recent_executions_agent_executions_get.asyncio(
+            client=self.client,
+            config_id=config_id,
+            state=state,
+            limit=limit
         )
