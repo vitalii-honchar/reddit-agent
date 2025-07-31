@@ -21,8 +21,8 @@ from insights.agentapi_client.fast_api_client.models import (
     AgentExecutionCreate,
     AgentExecutionRead, 
     AgentConfigurationUpdate,
+    GetRecentExecutionsAgentExecutionsGetState,
 )
-from core.models import AgentExecutionState
 
 class AgentAPIService:
     """Async service for interacting with AgentAPI endpoints."""
@@ -115,7 +115,7 @@ class AgentAPIService:
     async def get_recent_executions(
         self, 
         config_id: UUID, 
-        state: AgentExecutionState, 
+        state: GetRecentExecutionsAgentExecutionsGetState,
         limit: int = 10
     ) -> List[AgentExecutionRead]:
         """Get recent agent executions for a specific config and state.

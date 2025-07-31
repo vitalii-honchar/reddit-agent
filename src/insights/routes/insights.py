@@ -7,6 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from insights.services import AgentAPIService, configs
+from insights.agentapi_client.fast_api_client.models import GetRecentExecutionsAgentExecutionsGetState
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ async def insights_page(
     try:
         executions = await agent_api.get_recent_executions(
             config_id=config_id,
-            state="completed",
+            state=GetRecentExecutionsAgentExecutionsGetState.COMPLETED,
             limit=10
         )
     except Exception as e:
