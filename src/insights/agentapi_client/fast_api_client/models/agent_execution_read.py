@@ -7,6 +7,8 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.agent_execution_read_state import AgentExecutionReadState
+
 if TYPE_CHECKING:
     from ..models.agent_execution_read_error_result_type_0 import AgentExecutionReadErrorResultType0
     from ..models.agent_execution_read_success_result_type_0 import AgentExecutionReadSuccessResultType0
@@ -21,6 +23,7 @@ class AgentExecutionRead:
     Attributes:
         id (UUID): Agent ID
         config_id (UUID): Agent configuration ID
+        state (AgentExecutionReadState): Agent execution state
         executions (int): Agent executions
         created_at (datetime.datetime): Agent execution creation time
         updated_at (datetime.datetime): Agent execution update time
@@ -30,6 +33,7 @@ class AgentExecutionRead:
 
     id: UUID
     config_id: UUID
+    state: AgentExecutionReadState
     executions: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
@@ -44,6 +48,8 @@ class AgentExecutionRead:
         id = str(self.id)
 
         config_id = str(self.config_id)
+
+        state = self.state.value
 
         executions = self.executions
 
@@ -69,6 +75,7 @@ class AgentExecutionRead:
             {
                 "id": id,
                 "config_id": config_id,
+                "state": state,
                 "executions": executions,
                 "created_at": created_at,
                 "updated_at": updated_at,
@@ -88,6 +95,8 @@ class AgentExecutionRead:
         id = UUID(d.pop("id"))
 
         config_id = UUID(d.pop("config_id"))
+
+        state = AgentExecutionReadState(d.pop("state"))
 
         executions = d.pop("executions")
 
@@ -128,6 +137,7 @@ class AgentExecutionRead:
         agent_execution_read = cls(
             id=id,
             config_id=config_id,
+            state=state,
             executions=executions,
             created_at=created_at,
             updated_at=updated_at,
