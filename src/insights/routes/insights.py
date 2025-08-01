@@ -19,6 +19,10 @@ def get_agent_display_name(config):
         return "🔒 Cybersecurity"
     elif config_id == "2a64ea22-6de6-11f0-9bbe-5ee52574761b":
         return "💡 Idea Validation"
+    elif config_id == "3e7f2c84-6de6-11f0-8a45-5ee52574761b":
+        return "🤖 AI Customer Support"
+    elif config_id == "4b8a5d92-6de6-11f0-9c73-5ee52574761b":
+        return "📸 AI Instagram Tools"
     else:
         return "🤖 Research Agent"
 
