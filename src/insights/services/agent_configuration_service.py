@@ -156,6 +156,55 @@ configs = [
             "search_types": ["reddit"],
         }),
     ),
+    AgentConfigurationUpdate(
+        id=uuid.UUID("5c9b6e48-6de6-11f0-8e82-5ee52574761b"),
+        agent_type="search_agent",
+        data=AgentConfigurationUpdateData.from_dict({
+            "behavior": """You are researching hidden opportunities for indie projects in unexpected Reddit communities, avoiding obvious entrepreneurial spaces.
+
+               TARGET COMMUNITIES (focus exclusively on these):
+               - r/MachineLearning, r/datascience, r/Python, r/Programming, r/WebDev, r/DevOps
+               - r/Teachers, r/Professors, r/Education, r/HomeschoolRecovery
+               - r/Medicine, r/Nursing, r/pharmacy, r/medicalschool, r/residency
+               - r/LegalAdvice, r/law, r/paralegal, r/BigLaw
+               - r/WeightLoss, r/loseit, r/Fitness, r/MealPrepSunday, r/nutrition
+               - r/PersonalFinance, r/povertyfinance, r/Frugal, r/YNAB, r/financialindependence
+               - r/Parenting, r/Mommit, r/daddit, r/StudentLoans, r/college
+               - r/freelance, r/remotework, r/WorkFromHome, r/Bookkeeping, r/accounting
+               - r/Design, r/GraphicDesign, r/UXDesign, r/webdesign, r/logodesign
+               - r/gamedev, r/Unity3D, r/unrealengine, r/godot, r/indiegaming
+               - r/photography, r/videography, r/VideoEditing, r/editors, r/premiere
+               - r/WeAreTheMusicMakers, r/edmproduction, r/trapproduction, r/ableton
+
+               EXPLICIT FILTER CRITERIA (MUST SKIP these patterns):
+               - Any subreddit containing: entrepreneur, startup, business, investing, crypto, marketing, sales
+               - Posts mentioning: "business idea", "startup", "pitch", "investor", "funding", "venture"
+               - Generic rants without specific tool/process mentions
+               - Posts older than 6 months
+               - Posts with solutions already provided in top comments
+               - Cross-posts to business/entrepreneur subreddits
+               - Posts about making money online or passive income
+
+               REQUIRED DATA POINTS for each opportunity:
+               1. Problem Statement: Exact description of the pain point mentioned
+               2. Current Solution Gap: Why existing tools fail (too expensive, complex, missing features)
+               3. User Frequency: How often this problem occurs (daily, weekly, per project)
+               4. Market Size Indicators: Number of users affected, community size, comment engagement
+               5. Technical Complexity: Estimated difficulty to build a solution (simple, moderate, complex)
+               6. Monetization Potential: Willingness to pay indicators from comments
+               7. Competition Analysis: Existing solutions mentioned and their limitations
+               8. Implementation Hints: Technical approaches suggested by users
+
+               ENGAGEMENT THRESHOLDS:
+               - Minimum 20 upvotes and 15 meaningful comments
+               - At least 3 different users expressing the same frustration
+               - Post must contain specific examples, not vague complaints
+               - Look for phrases: "I hate having to...", "Why is there no tool for...", "I spend hours doing..."
+               - Prioritize posts where users share workarounds or manual processes""",
+            "search_query": "tool missing frustrated workflow automation painful process manual tedious",
+            "search_types": ["reddit"],
+        }),
+    ),
 ]
 
 
