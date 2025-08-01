@@ -19,8 +19,12 @@ class AppSettings(BaseSettings):
     reddit_client_secret: str
     reddit_agent: str
     openai_api_key: str
+    openai_endpoint: str | None = None
+    openai_site_url: str | None = None
+    openai_site_name: str | None = None
     llm_model: str = 'gpt-4.1'
     llm_model_temperature: float = 0.1
+    llm_model_max_tokens: int = 4000
     prompts_folder: str = 'prompts'
     db_url: str
     debug: bool = False
@@ -37,7 +41,13 @@ class AppContext:
         self.llm = ChatOpenAI(
             model=settings.llm_model,
             temperature=settings.llm_model_temperature,
+            max_tokens=settings.llm_model_max_tokens,
+            base_url=settings.openai_endpoint,
             api_key=settings.openai_api_key,
+            default_headers={
+                "HTTP-Referer": settings.openai_site_url,
+                "X-Title": settings.openai_site_name,
+            }
         )
         self.prompt_manager = PromptManager(Path(settings.prompts_folder))
         self.reddit_tools_service = RedditToolsService(
