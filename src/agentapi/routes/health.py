@@ -23,7 +23,7 @@ async def health_check() -> Dict[str, Any]:
         with Session(ctx.db_engine) as session:
             # Simple database ping
             result = session.exec(text("SELECT 1")).first()
-            if result == 1:
+            if result[0] == 1:
                 checks["database"] = {
                     "status": "healthy",
                     "message": "Database connection successful"
@@ -31,7 +31,7 @@ async def health_check() -> Dict[str, Any]:
             else:
                 checks["database"] = {
                     "status": "unhealthy", 
-                    "message": "Database query returned unexpected result"
+                    "message": f"Database query returned unexpected result: {result}"
                 }
                 status = "unhealthy"
     except Exception as e:
