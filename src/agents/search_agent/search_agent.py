@@ -17,23 +17,31 @@ async def execute_search(cfg: Config, cmd: CreateSearchAgentCommand) -> SearchRe
     prompt_manager = PromptManager(cfg.prompts_folder)
     search_agent_prompt = prompt_manager.load_prompt("search_agent", "system")
     
-    agent = create_react_agent(
-        model=cfg.llm,
-        tools=_create_tools(cfg, cmd),
-        response_format=SearchResult,
-        prompt=search_agent_prompt.format(behavior=cmd.behavior, min_results=cmd.min_results),
-    ).with_config(recursion_limit=cmd.recursion_limit)
+    # Create tools and track Reddit clients for cleanup
+    tools, reddit_clients = await _create_tools(cfg, cmd)
+    
+    try:
+        agent = create_react_agent(
+            model=cfg.llm,
+            tools=tools,
+            response_format=SearchResult,
+            prompt=search_agent_prompt.format(behavior=cmd.behavior, min_results=cmd.min_results),
+        ).with_config(recursion_limit=cmd.recursion_limit)
 
-    messages = [HumanMessage(cmd.search_query)]
+        messages = [HumanMessage(cmd.search_query)]
 
-    res = None
-    async for event in agent.astream({"messages": messages}, stream_mode='values'):
-        _log_message(event["messages"][-1])
-        res = event
+        res = None
+        async for event in agent.astream({"messages": messages}, stream_mode='values'):
+            _log_message(event["messages"][-1])
+            res = event
 
-    if res is None:
-        raise RuntimeError("No search results found")
-    return res["structured_response"]
+        if res is None:
+            raise RuntimeError("No search results found")
+        return res["structured_response"]
+    finally:
+        # Clean up Reddit clients
+        for reddit_client in reddit_clients:
+            await reddit_client.close()
 
 
 def _log_message(message: BaseMessage):
@@ -56,8 +64,9 @@ def _log_message(message: BaseMessage):
 
 
 
-def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
+async def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> tuple[list[Callable], list[asyncpraw.Reddit]]:
     tools = []
+    reddit_clients = []
 
     for search_type in cmd.search_types:
         if search_type == "reddit":
@@ -66,6 +75,7 @@ def _create_tools(cfg: Config, cmd: CreateSearchAgentCommand) -> list[Callable]:
                 client_secret=cfg.reddit_config.client_secret,
                 user_agent=cfg.reddit_config.user_agent,
             )
+            reddit_clients.append(reddit)
             tools.extend(create_reddit_tools(reddit))
 
-    return tools
+    return tools, reddit_clients
