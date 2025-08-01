@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 from sqlmodel import Session
 
@@ -7,10 +8,9 @@ from core.models.agent import AgentExecution, utcnow
 from core.services.agent import AgentExecutionService
 from scheduler.services.agent_executor import AgentExecutor
 from scheduler.settings import SchedulerSettings
-from typing import Any
-import asyncio
 
 logger = logging.getLogger("uvicorn")
+
 
 @dataclass
 class SchedulerService:
@@ -29,14 +29,11 @@ class SchedulerService:
 
         logger.info(f"Found {len(pending_executions)} pending executions")
 
-        execution_tasks = [
-            asyncio.create_task(self._execution_task(session, execution))
-            for execution in pending_executions
-        ]
-        processed_count = sum(await asyncio.gather(*execution_tasks))
+        for execution in pending_executions:
+            await self._execution_task(session, execution)
 
-        logger.info(f"Processed {processed_count} pending executions")
-        return processed_count
+        logger.info(f"Processed {len(pending_executions)} pending executions")
+        return len(pending_executions)
 
     async def _execution_task(self, session: Session, execution: AgentExecution) -> int:
         try:
