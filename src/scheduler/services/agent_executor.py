@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from langchain_openai import ChatOpenAI
 
 from agents.config import Config, RedditConfig
 from agents.search_agent import CreateSearchAgentCommand, execute_search
@@ -33,11 +32,7 @@ class AgentExecutor:
 
     def _create_config(self) -> Config:
         return Config(
-            llm=ChatOpenAI(
-                model=self.settings.llm_model,
-                temperature=self.settings.llm_model_temperature,
-                api_key=self.settings.openai_api_key # type: ignore
-            ),
+            llm=self.settings.create_llm(),
             reddit_config=RedditConfig(
                 client_id=self.settings.reddit_client_id,
                 client_secret=self.settings.reddit_client_secret,
