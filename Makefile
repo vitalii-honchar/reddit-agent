@@ -1,6 +1,6 @@
 # Makefile for Reddit Agent project
 
-.PHONY: help install dev-install test lint format clean regenerate-client start-api docker-build
+.PHONY: help install dev-install test lint format clean regenerate-client start-api docker-build docker-build-push
 
 # Default target
 help:
@@ -13,7 +13,8 @@ help:
 	@echo "  clean            - Clean generated files"
 	@echo "  regenerate-client - Regenerate OpenAPI client from running API"
 	@echo "  start-api        - Start the FastAPI server"
-	@echo "  docker-build     - Build and push Docker image"
+	@echo "  docker-build     - Build ARM64 Docker image locally"
+	@echo "  docker-build-push - Build and push ARM64 Docker image"
 
 # Install dependencies
 install:
@@ -87,4 +88,7 @@ db-migrate:
 
 # Docker
 docker-build:
+	docker buildx build --platform linux/arm64 --build-arg ARCH=linux/arm64 -t reddit-agent:latest .
+
+docker-build-push:
 	docker buildx build --push --platform linux/arm64 --build-arg ARCH=linux/arm64 -t weaxme/pet-project:reddit-agent-latest .
