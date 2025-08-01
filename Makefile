@@ -94,6 +94,10 @@ docker-build-push:
 	docker buildx build --push --platform linux/arm64 --build-arg ARCH=linux/arm64 -t weaxme/pet-project:reddit-agent-latest .
 
 
+release-agents-api: docker-build-push
+	ssh hetzner-mvp "docker compose pull"
+	ssh hetzner-mvp "docker compose stop agents_api; docker compose up -d agents_api"
+
 release: docker-build-push
 	ssh hetzner-mvp "docker compose pull"
 	ssh hetzner-mvp "docker compose stop agents_api; docker compose up -d agents_api"
