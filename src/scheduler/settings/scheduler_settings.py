@@ -17,8 +17,8 @@ class SchedulerSettings(BaseSettings):
     db_url: str
     debug: bool = False
     poll_interval_seconds: float = 1
-    threshold_seconds: float = 600
-    max_retries: int = 3
+    threshold_seconds: float = 60
+    max_retries: int = 20
     
     def create_llm(self) -> BaseChatModel:
         llm_kwargs = {
