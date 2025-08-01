@@ -9,7 +9,7 @@ from agentapi.dependencies import ctx
 router = APIRouter(prefix="/health", tags=["health"])
 
 
-@router.get("/")
+@router.get("")
 async def health_check() -> Dict[str, Any]:
     """
     Health check endpoint that verifies database connectivity.
