@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from insights.dependencies import AgentApiServiceDep
 from insights.services import AgentAPIService, configs
 from insights.agentapi_client.fast_api_client.models import GetRecentExecutionsAgentExecutionsGetState
 
@@ -29,6 +30,7 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/", response_class=HTMLResponse)
 async def insights_page(
     request: Request,
+    agent_api: AgentApiServiceDep,
     config_id: Optional[UUID] = Query(None, description="Configuration ID to filter by")
 ):
     """Insights dashboard page showing search results from agents."""
@@ -43,8 +45,6 @@ async def insights_page(
             {"request": request, "executions": [], "configs": [], "selected_config": None}
         )
     
-    # Get recent completed executions for the config
-    agent_api = AgentAPIService()
     try:
         executions = await agent_api.get_recent_executions(
             config_id=config_id,
@@ -52,7 +52,7 @@ async def insights_page(
             limit=3
         )
     except Exception as e:
-        logger.exception(f"Failed to fetch executions for config {config_id}")
+        logger.error(f"Failed to fetch executions for config {config_id}: {e}")
         executions = []
     
     # Create configs with display names
