@@ -39,6 +39,8 @@ COPY src/ ./src/
 COPY prompts/ ./prompts/
 COPY static/ ./static/
 COPY templates/ ./templates/
+COPY alembic/ ./alembic/
+COPY alembic.ini ./alembic.ini
 COPY scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 
 # Make entrypoint script executable

@@ -8,6 +8,16 @@ HOST=${HOST:-0.0.0.0}
 
 echo "Starting Reddit Agent in ${MODE} mode on ${HOST}:${PORT}"
 
+# Run database migrations
+echo "Running database migrations..."
+alembic upgrade head
+if [ $? -eq 0 ]; then
+    echo "Database migrations completed successfully"
+else
+    echo "Database migrations failed"
+    exit 1
+fi
+
 case "${MODE}" in
     "agentapi")
         echo "Launching AgentAPI service..."
