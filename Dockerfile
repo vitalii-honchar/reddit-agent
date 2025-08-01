@@ -34,12 +34,18 @@ COPY --from=builder /app/.venv /app/.venv
 # Make sure we use venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copy source code
+# Copy source code and resources
 COPY src/ ./src/
 COPY prompts/ ./prompts/
+COPY static/ ./static/
+COPY templates/ ./templates/
+COPY scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
+
+# Make entrypoint script executable
+RUN chmod +x ./scripts/docker-entrypoint.sh
 
 # Expose port for FastAPI
 EXPOSE 8000
 
-# Start FastAPI with integrated scheduler
-CMD ["fastapi", "run", "src/agentapi/main.py", "--port", "8000", "--host", "0.0.0.0"]
+# Use entrypoint script to support multiple services
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
