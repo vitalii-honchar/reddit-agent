@@ -98,6 +98,7 @@ class SearchMetadata(BaseModel):
 
 class SearchResult(BaseModel):
     findings: list[Finding] = Field(
+        default=[],
         description=(
             "Curated list of high-quality, actionable insights from all sources. "
             "Each finding represents a validated tactic with measurable outcomes."

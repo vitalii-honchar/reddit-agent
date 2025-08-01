@@ -1,4 +1,5 @@
 import logging
+import random
 import uuid
 
 from insights.agentapi_client.fast_api_client.models import AgentConfigurationUpdate, AgentConfigurationUpdateData
@@ -216,7 +217,12 @@ class AgentConfigurationService:
 
     async def migrate(self):
         self.logger.info("Migrating agent configurations: %d", len(configs))
-        for config in configs:
+        
+        # Shuffle configs to randomize execution order
+        shuffled_configs = configs.copy()
+        random.shuffle(shuffled_configs)
+        
+        for config in shuffled_configs:
             logging.info("Migrating agent configuration: %s", config.id)
             res = await self.agent_api_service.upsert_configuration(config)
             if not res:
