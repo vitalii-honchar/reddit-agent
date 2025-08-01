@@ -23,7 +23,7 @@ def get_agent_display_name(config):
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/insights", tags=["insights"])
+router = APIRouter(tags=["insights"])
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
