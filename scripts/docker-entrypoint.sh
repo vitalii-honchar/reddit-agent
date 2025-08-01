@@ -11,7 +11,6 @@ echo "Starting Reddit Agent in ${MODE} mode on ${HOST}:${PORT}"
 # Run database migrations if DB URL is provided
 if [ -n "${INDIE_HACKERS_AGENT_DB_URL:-}" ]; then
     echo "Running database migrations..."
-    echo "Using database URL: ${INDIE_HACKERS_AGENT_DB_URL}"
     alembic upgrade head
     if [ $? -eq 0 ]; then
         echo "Database migrations completed successfully"
