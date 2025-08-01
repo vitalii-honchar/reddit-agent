@@ -8,7 +8,9 @@ from fastapi.templating import Jinja2Templates
 
 from insights.dependencies import AgentApiServiceDep
 from insights.services import AgentAPIService, configs
-from insights.agentapi_client.fast_api_client.models import GetRecentExecutionsAgentExecutionsGetState
+from insights.agentapi_client.fast_api_client.models import GetRecentExecutionsAgentExecutionsGetState, \
+    AgentExecutionRead
+
 
 def get_agent_display_name(config):
     """Generate display name with emoji based on config ID."""
@@ -26,29 +28,42 @@ def get_agent_display_name(config):
     else:
         return "🤖 Research Agent"
 
+
+def executions_filter(e: AgentExecutionRead) -> bool:
+    if e.success_result is None:
+        return False
+    data = e.success_result.to_dict()
+    findings = data.get("findings")
+    if findings is None:
+        return False
+
+    return len(findings) > 0
+
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["insights"])
 templates = Jinja2Templates(directory="templates")
 
+
 @router.get("/", response_class=HTMLResponse)
 async def insights_page(
-    request: Request,
-    agent_api: AgentApiServiceDep,
-    config_id: Optional[UUID] = Query(None, description="Configuration ID to filter by")
+        request: Request,
+        agent_api: AgentApiServiceDep,
+        config_id: Optional[UUID] = Query(None, description="Configuration ID to filter by")
 ):
     """Insights dashboard page showing search results from agents."""
     # Use first config if none provided
     if config_id is None and configs:
         config_id = configs[0].id
-    
+
     if not config_id:
         # No configs available
         return templates.TemplateResponse(
             "insights/main.html",
             {"request": request, "executions": [], "configs": [], "selected_config": None}
         )
-    
+
     try:
         executions = await agent_api.get_recent_executions(
             config_id=config_id,
@@ -58,7 +73,7 @@ async def insights_page(
     except Exception as e:
         logger.error(f"Failed to fetch executions for config {config_id}: {e}")
         executions = []
-    
+
     # Create configs with display names
     configs_with_names = [
         {
@@ -68,12 +83,12 @@ async def insights_page(
         }
         for config in configs
     ]
-    
+
     return templates.TemplateResponse(
         "insights/main.html",
         {
             "request": request,
-            "executions": executions,
+            "executions": list(filter(executions_filter, executions)),
             "configs": configs_with_names,
             "selected_config": config_id
         }
