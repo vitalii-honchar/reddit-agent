@@ -22,8 +22,8 @@ FROM --platform=${ARCH} python:3.13-alpine AS runtime
 # Re-declare ARG for runtime stage
 ARG ARCH=
 
-# Install runtime dependencies for compiled packages
-RUN apk add --no-cache libgcc
+# Install runtime dependencies for compiled packages and curl for healthcheck
+RUN apk add --no-cache libgcc curl
 
 # Set working directory
 WORKDIR /app
@@ -46,6 +46,10 @@ RUN chmod +x ./scripts/docker-entrypoint.sh
 
 # Expose port for FastAPI
 EXPOSE 8000
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Use entrypoint script to support multiple services
 ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
