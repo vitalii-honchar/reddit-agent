@@ -41,7 +41,7 @@ def run_migrations_offline() -> None:
     import os
     url = config.get_main_option("sqlalchemy.url")
     if url is None:
-        url = os.getenv("DATABASE_URL", "postgresql://root:953810aa-684f-11f0-b390-5ee52574761b@localhost:5432/agentdb")
+        url = os.getenv("INDIE_HACKERS_AGENT_DB_URL", "postgresql://root:953810aa-684f-11f0-b390-5ee52574761b@localhost:5432/agentdb")
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -63,7 +63,7 @@ def run_migrations_online() -> None:
     import os
     configuration = config.get_section(config.config_ini_section, {})
     if "sqlalchemy.url" not in configuration:
-        configuration["sqlalchemy.url"] = os.getenv("DATABASE_URL", "postgresql://root:953810aa-684f-11f0-b390-5ee52574761b@localhost:5432/agentdb")
+        configuration["sqlalchemy.url"] = os.getenv("INDIE_HACKERS_AGENT_DB_URL", "postgresql://root:953810aa-684f-11f0-b390-5ee52574761b@localhost:5432/agentdb")
     
     connectable = engine_from_config(
         configuration,
