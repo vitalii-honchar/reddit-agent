@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 from sqlmodel import Session, select, update
 from sqlalchemy.exc import NoResultFound
 
@@ -32,17 +32,17 @@ class AgentConfigurationRepository:
             existing = session.exec(
                 select(AgentConfiguration).where(AgentConfiguration.id == agent_configuration.id)  # type: ignore
             ).one()
-            
+
             # Update existing configuration
             existing.agent_type = agent_configuration.agent_type
             existing.data = agent_configuration.data
             existing.updated_at = utcnow()
-            
+
             session.add(existing)
             session.commit()
             session.refresh(existing)
             return existing
-            
+
         except NoResultFound:
             # Configuration doesn't exist, create new one
             return self.create(session, agent_configuration)
@@ -102,24 +102,34 @@ class AgentExecutionRepository:
                     ).values(executions=execution.executions + 1)
                 )
 
-                if res.rowcount > 0: # type: ignore
+                if res.rowcount > 0:  # type: ignore
                     session.refresh(execution)
                     return execution
 
         return None
 
     def get_recent(
-        self, 
-        session: Session, 
-        config_id: UUID,
-        state: AgentExecutionState,
-        limit: int = 10
+            self,
+            session: Session,
+            config: AgentConfiguration,
+            state: AgentExecutionState,
+            limit: int = 10
     ) -> Sequence[AgentExecution]:
-        query = select(AgentExecution).where(  # type: ignore
+        conditions = [
             and_(
-                AgentExecution.config_id == config_id,
+                AgentExecution.config_id == config.id,
                 AgentExecution.state == state
             )
-        ).order_by(AgentExecution.updated_at.desc()).limit(limit)  # type: ignore
-        
-        return session.exec(query).all()
+        ]
+
+        if config.agent_type == "search_agent":
+            conditions.append(
+                func.jsonb_array_length(
+                    AgentExecution.success_result['findings']
+                ) > 0
+            )
+
+        query = (select(AgentExecution).where(*conditions)
+                 .order_by(AgentExecution.updated_at.desc()).limit(limit))  # type: ignore
+
+        return session.exec(query).all()  # type: ignore

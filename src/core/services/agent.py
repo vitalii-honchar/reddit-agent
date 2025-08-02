@@ -30,6 +30,7 @@ class AgentConfigurationService:
 @dataclass
 class AgentExecutionService:
     repository: AgentExecutionRepository
+    agent_configuration_service: AgentConfigurationService
 
     def create(self, session: Session, create: AgentExecutionCreate) -> AgentExecution:
         return self.repository.create(session, AgentExecution.model_validate(create))
@@ -56,4 +57,5 @@ class AgentExecutionService:
         state: AgentExecutionState,
         limit: int = 10
     ) -> Sequence[AgentExecution]:
-        return self.repository.get_recent(session, config_id=config_id, state=state, limit=limit)
+        config = self.agent_configuration_service.get_by_id(session, config_id)
+        return self.repository.get_recent(session, config=config, state=state, limit=limit)

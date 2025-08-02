@@ -24,7 +24,8 @@ class AppContext:
         self.agent_configuration_repository = AgentConfigurationRepository()
         self.agent_execution_repository = AgentExecutionRepository()
         self.agent_configuration_service = AgentConfigurationService(self.agent_configuration_repository)
-        self.agent_execution_service = AgentExecutionService(self.agent_execution_repository)
+        self.agent_execution_service = AgentExecutionService(self.agent_execution_repository,
+                                                             self.agent_configuration_service)
         self.scheduler_settings = SchedulerSettings()  # type: ignore
         self.scheduler_ctx = SchedulerAppContext(self.scheduler_settings)
         self.scheduler_manager = SchedulerManager(
