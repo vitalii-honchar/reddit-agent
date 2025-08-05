@@ -3,6 +3,7 @@ import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from agentapi import routes
 from .dependencies import ctx
@@ -22,6 +23,11 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Initialize Prometheus metrics
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app)
+
 app.include_router(routes.agent_configurations)
 app.include_router(routes.agent_executions)
 app.include_router(routes.health)
